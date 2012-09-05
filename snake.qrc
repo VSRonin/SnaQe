@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/Snake">
+        <file alias="Mela.png">Resources/Mela.png</file>
+        <file alias="Body.png">Resources/snake_body.png</file>
+        <file alias="Head.png">Resources/snake_head.png</file>
+        <file alias="Tail.png">Resources/snake_tail.png</file>
+        <file alias="Mouse.png">Resources/animals-mouse.png</file>
+    </qresource>
+</RCC>
