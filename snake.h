@@ -22,6 +22,8 @@ private:
 	QLabel* Topo;
 	QLabel* TopScores;
 	QLabel* OpzioniLabel;
+	QLabel* AusiliariaSerpente;
+	QLabel* AusiliariaTopo;
 	QPushButton* ChiudiOpzioni;
 	QPixmap ImmagineTesta;
 	QPixmap ImmagineCoda;

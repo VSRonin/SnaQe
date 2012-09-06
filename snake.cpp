@@ -76,7 +76,14 @@ Snake::Snake(QWidget *parent)
 	Topo->setScaledContents(true);
 	Topo->setPixmap(ImmagineTopo);
 	Topo->hide();
-
+	AusiliariaSerpente=new QLabel(this);
+	AusiliariaSerpente->setObjectName("AusiliariaSerpente");
+	AusiliariaSerpente->setScaledContents(true);
+	AusiliariaSerpente->hide();
+	AusiliariaTopo=new QLabel(this);
+	AusiliariaTopo->setObjectName("AusiliariaTopo");
+	AusiliariaTopo->setScaledContents(true);
+	AusiliariaTopo->hide();
 
 	NuovoGioco=new QPushButton(this);
 	NuovoGioco->setObjectName("NuovoGioco");
@@ -147,6 +154,8 @@ void Snake::MostraMenu(){
 	Esci->show();
 	Mela->hide();
 	Topo->hide();
+	AusiliariaSerpente->hide();
+	AusiliariaTopo->hide();
 	EliminaCorpo();
 	TestaSerpente->hide();
 	CodaSerpente->hide();
@@ -358,6 +367,8 @@ void Snake::NascondiOpzioni(){
 		TestaSerpente->setEnabled(true);
 		CodaSerpente->setEnabled(true);
 		Punteggio->setEnabled(true);
+		AusiliariaSerpente->setEnabled(true);
+		AusiliariaTopo->setEnabled(true);
 		connect(Animazioni,SIGNAL(finished()),this,SLOT(Partita()));
 	}
 	Animazioni->start(QAbstractAnimation::DeleteWhenStopped);
@@ -512,6 +523,8 @@ void Snake::resizeEvent(QResizeEvent *event){
 	Topo->setGeometry(CoordinateTopo.GetX()*width()/NumeroCaselle,CoordinateTopo.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 	TestaSerpente->setGeometry(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 	CodaSerpente->setGeometry(CoordinateSerpente.last().GetX()*width()/NumeroCaselle,CoordinateSerpente.last().GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
+	AusiliariaSerpente->resize(width()/NumeroCaselle,height()/NumeroCaselle);
+	AusiliariaTopo->resize(width()/NumeroCaselle,height()/NumeroCaselle);
 	for (int i=0;i<CorpoSerpente.size();i++)
 		CorpoSerpente.at(i)->setGeometry(CoordinateSerpente.at(i+1).GetX()*width()/NumeroCaselle,CoordinateSerpente.at(i+1).GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 	TopScores->resize(width()*TopScores->sizeHint().width()/400,height()*TopScores->sizeHint().height()/400);
@@ -561,8 +574,30 @@ void Snake::Partita(){
 	QParallelAnimationGroup *Animazioni=new QParallelAnimationGroup;
 	connect(Animazioni,SIGNAL(finished()),this,SLOT(Partita()));
 	//Controllo i conflitti
-	if(CoordinateSerpente.first()==CoordinateMela || CoordinateTopo==CoordinateMela){ //la mela è stata mangiata
-		if (CoordinateSerpente.first()==CoordinateMela) {punti+=difficolta; mangiato=true;} //l'ha mangiata il serpente
+
+	
+	
+	
+	if(
+		CoordinateSerpente.first()==CoordinateMela
+		|| (CoordinateSerpente.first().GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==0 && CoordinateSerpente.first().GetY()>=NumeroCaselle)
+		|| (CoordinateSerpente.first().GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
+		|| (CoordinateSerpente.first().GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==0 && CoordinateSerpente.first().GetX()>=NumeroCaselle)
+		|| (CoordinateSerpente.first().GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)
+
+		|| CoordinateTopo==CoordinateMela
+		|| (CoordinateTopo.GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==0 && CoordinateTopo.GetY()>=NumeroCaselle)
+		|| (CoordinateTopo.GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
+		|| (CoordinateTopo.GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==0 && CoordinateTopo.GetX()>=NumeroCaselle)
+		|| (CoordinateTopo.GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==NumeroCaselle-1 && CoordinateTopo.GetX()<0)
+	){ //la mela è stata mangiata
+		if (
+			CoordinateSerpente.first()==CoordinateMela
+			|| (CoordinateSerpente.first().GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==0 && CoordinateSerpente.first().GetY()>=NumeroCaselle)
+			|| (CoordinateSerpente.first().GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
+			|| (CoordinateSerpente.first().GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==0 && CoordinateSerpente.first().GetX()>=NumeroCaselle)
+			|| (CoordinateSerpente.first().GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)
+		) {punti+=difficolta; mangiato=true;} //l'ha mangiata il serpente
 		else punti-=5*difficolta;  //l'ha mangiata il topo
 		AggiornaPunti();
 		bool buono;
@@ -577,7 +612,13 @@ void Snake::Partita(){
 		}while(!buono);
 		Mela->setGeometry(CoordinateMela.GetX()*width()/NumeroCaselle,CoordinateMela.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);	
 	}
-	if(CoordinateSerpente.first()==CoordinateTopo){ //Ho mangiato il topo
+	if(
+		CoordinateSerpente.first()==CoordinateTopo
+		|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==0 && CoordinateSerpente.first().GetY()>=NumeroCaselle)
+		|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
+		|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==0 && CoordinateSerpente.first().GetX()>=NumeroCaselle)
+		|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)
+	){ //Ho mangiato il topo
 		punti+=10*difficolta;
 		AggiornaPunti();
 		mangiato=true;
@@ -596,7 +637,8 @@ void Snake::Partita(){
 
 	bool vivo=true;
 	for (QList<CoordinateCorpo>::iterator i=CoordinateSerpente.begin()+1;i!=CoordinateSerpente.end() && vivo;i++){
-		if(CoordinateSerpente.first()==*i) vivo=false;
+		if(CoordinateSerpente.first()==*i)
+			vivo=false;
 	}
 	Salvataggio.resize(0);
 	if (!vivo){
@@ -658,6 +700,9 @@ void Snake::Partita(){
 		return;
 
 	}
+	
+	AusiliariaSerpente->hide();
+	AusiliariaTopo->hide();
 
 	//Salvo la Partita
 	Salvataggio.open(QIODevice::WriteOnly);
@@ -682,13 +727,32 @@ void Snake::Partita(){
 	QPropertyAnimation* animTesta= new QPropertyAnimation(TestaSerpente,"pos",this);
 	animTesta->setDuration(VelocitaGioco/difficolta);
 	animTesta->setEasingCurve(QEasingCurve::Linear);
-	animTesta->setKeyValueAt(0.0,TestaSerpente->pos());
+	//animTesta->setKeyValueAt(0.0,TestaSerpente->pos());
+	if(CoordinateSerpente.first().IsInside(QRect(0,0,NumeroCaselle,NumeroCaselle)))
+		animTesta->setKeyValueAt(0.0,QPoint(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle));
+	else{
+		QPoint Partenza(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle);
+		if (CoordinateSerpente.first().GetX()<0) Partenza.setX((NumeroCaselle-1)*width()/NumeroCaselle);
+		if (CoordinateSerpente.first().GetX()>=NumeroCaselle) Partenza.setX(0);
+		if (CoordinateSerpente.first().GetY()<0) Partenza.setY((NumeroCaselle-1)*height()/NumeroCaselle);
+		if (CoordinateSerpente.first().GetY()>=NumeroCaselle) Partenza.setY(0);
+		animTesta->setKeyValueAt(0.0,Partenza);
+	}
 
 	if (mangiato){
 		CorpoSerpente.prepend(new QLabel(this));
 		CorpoSerpente.first()->setScaledContents(true);
 		CorpoSerpente.first()->show();
-		CorpoSerpente.first()->setGeometry(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
+		if(CoordinateSerpente.first().IsInside(QRect(0,0,NumeroCaselle,NumeroCaselle)))
+			CorpoSerpente.first()->setGeometry(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
+		else{
+			QPoint Partenza(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle);
+			if (CoordinateSerpente.first().GetX()<0) Partenza.setX((NumeroCaselle-1)*width()/NumeroCaselle);
+			if (CoordinateSerpente.first().GetX()>=NumeroCaselle) Partenza.setX(0);
+			if (CoordinateSerpente.first().GetY()<0) Partenza.setY((NumeroCaselle-1)*height()/NumeroCaselle);
+			if (CoordinateSerpente.first().GetY()>=NumeroCaselle) Partenza.setY(0);
+			CorpoSerpente.first()->setGeometry(Partenza.x(),Partenza.y(),width()/NumeroCaselle,height()/NumeroCaselle);
+		}
 		QPropertyAnimation* animNuovo= new QPropertyAnimation(CorpoSerpente.first(),"size",this);
 		animNuovo->setDuration(VelocitaGioco/difficolta);
 		animNuovo->setEasingCurve(QEasingCurve::Linear);
@@ -709,18 +773,102 @@ void Snake::Partita(){
 			temp=new QPropertyAnimation(CorpoSerpente.at(j-1),"pos",this);
 			temp->setDuration(VelocitaGioco/difficolta);
 			temp->setEasingCurve(QEasingCurve::Linear);
-			temp->setKeyValueAt(0.0,QPoint(CoordinateSerpente.at(j).GetX()*width()/NumeroCaselle,CoordinateSerpente.at(j).GetY()*height()/NumeroCaselle));
+			if(CoordinateSerpente.at(j).IsInside(QRect(0,0,NumeroCaselle,NumeroCaselle)))
+				temp->setKeyValueAt(0.0,QPoint(CoordinateSerpente.at(j).GetX()*width()/NumeroCaselle,CoordinateSerpente.at(j).GetY()*height()/NumeroCaselle));
+			else{
+				QPoint Partenza(CoordinateSerpente.at(j).GetX()*width()/NumeroCaselle,CoordinateSerpente.at(j).GetY()*height()/NumeroCaselle);
+				if (CoordinateSerpente.at(j).GetX()<0) Partenza.setX((NumeroCaselle-1)*width()/NumeroCaselle);
+				if (CoordinateSerpente.at(j).GetX()>=NumeroCaselle) Partenza.setX(0);
+				if (CoordinateSerpente.at(j).GetY()<0) Partenza.setY((NumeroCaselle-1)*height()/NumeroCaselle);
+				if (CoordinateSerpente.at(j).GetY()>=NumeroCaselle) Partenza.setY(0);
+				temp->setKeyValueAt(0.0,Partenza);
+			}
 			temp->setKeyValueAt(1.0,QPoint(CoordinateSerpente.at(j-1).GetX()*width()/NumeroCaselle,CoordinateSerpente.at(j-1).GetY()*height()/NumeroCaselle));
 			Animazioni->addAnimation(temp);
+			if (!CoordinateSerpente.at(j-1).IsInside(QRect(0,0,NumeroCaselle,NumeroCaselle))){
+				Rotazione.reset();
+				Rotazione.rotate(90*CoordinateSerpente.at(j-1).GetDirezione());
+				AusiliariaSerpente->setPixmap(ImmagineCorpo.transformed(Rotazione));
+				AusiliariaSerpente->show();
+				QPropertyAnimation* AuxAnim=new QPropertyAnimation(AusiliariaSerpente,"pos",this);
+				AuxAnim->setDuration(VelocitaGioco/difficolta);
+				AuxAnim->setEasingCurve(QEasingCurve::Linear);
+				if (CoordinateSerpente.at(j-1).GetX()<0){
+					AuxAnim->setKeyValueAt(0.0,QPoint(width(),CoordinateSerpente.at(j-1).GetY()*height()/NumeroCaselle));
+					AuxAnim->setKeyValueAt(1.0,QPoint((NumeroCaselle-1)*width()/NumeroCaselle,CoordinateSerpente.at(j-1).GetY()*height()/NumeroCaselle));
+				}
+				else if (CoordinateSerpente.at(j-1).GetX()>=NumeroCaselle){
+					AuxAnim->setKeyValueAt(0.0,QPoint(-width()/NumeroCaselle,CoordinateSerpente.at(j-1).GetY()*height()/NumeroCaselle));
+					AuxAnim->setKeyValueAt(1.0,QPoint(0,CoordinateSerpente.at(j-1).GetY()*height()/NumeroCaselle));
+				}
+				else if (CoordinateSerpente.at(j-1).GetY()>=NumeroCaselle){
+					AuxAnim->setKeyValueAt(0.0,QPoint(CoordinateSerpente.at(j-1).GetX()*width()/NumeroCaselle,-height()/NumeroCaselle));
+					AuxAnim->setKeyValueAt(1.0,QPoint(CoordinateSerpente.at(j-1).GetX()*width()/NumeroCaselle,0));
+				}
+				else if (CoordinateSerpente.at(j-1).GetY()<0){
+					AuxAnim->setKeyValueAt(0.0,QPoint(CoordinateSerpente.at(j-1).GetX()*width()/NumeroCaselle,height()));
+					AuxAnim->setKeyValueAt(1.0,QPoint(CoordinateSerpente.at(j-1).GetX()*width()/NumeroCaselle,(NumeroCaselle-1)*height()/NumeroCaselle));
+				}
+				Animazioni->addAnimation(AuxAnim);
+			}
 		}
 		temp=NULL;
 		temp=new QPropertyAnimation(CodaSerpente,"pos",this);
 		temp->setDuration(VelocitaGioco/difficolta);
 		temp->setEasingCurve(QEasingCurve::Linear);
-		temp->setKeyValueAt(0.0,QPoint(CoordinateSerpente.last().GetX()*width()/NumeroCaselle,CoordinateSerpente.last().GetY()*height()/NumeroCaselle));
+		if(CoordinateSerpente.last().IsInside(QRect(0,0,NumeroCaselle,NumeroCaselle)))
+			temp->setKeyValueAt(0.0,QPoint(CoordinateSerpente.last().GetX()*width()/NumeroCaselle,CoordinateSerpente.last().GetY()*height()/NumeroCaselle));
+		else{
+			QPoint Partenza(CoordinateSerpente.last().GetX()*width()/NumeroCaselle,CoordinateSerpente.last().GetY()*height()/NumeroCaselle);
+			if (CoordinateSerpente.last().GetX()<0) Partenza.setX((NumeroCaselle-1)*width()/NumeroCaselle);
+			if (CoordinateSerpente.last().GetX()>=NumeroCaselle) Partenza.setX(0);
+			if (CoordinateSerpente.last().GetY()<0) Partenza.setY((NumeroCaselle-1)*height()/NumeroCaselle);
+			if (CoordinateSerpente.last().GetY()>=NumeroCaselle) Partenza.setY(0);
+			temp->setKeyValueAt(0.0,Partenza);
+		}
 		temp->setKeyValueAt(1.0,QPoint(CoordinateSerpente.at(CoordinateSerpente.size()-2).GetX()*width()/NumeroCaselle,CoordinateSerpente.at(CoordinateSerpente.size()-2).GetY()*height()/NumeroCaselle));
 		Animazioni->addAnimation(temp);
+
+		if (!CoordinateSerpente.at(CoordinateSerpente.size()-2).IsInside(QRect(0,0,NumeroCaselle,NumeroCaselle))){
+			Rotazione.reset();
+			Rotazione.rotate(90*CoordinateSerpente.at(CoordinateSerpente.size()-2).GetDirezione());
+			AusiliariaSerpente->setPixmap(ImmagineCoda.transformed(Rotazione));
+			AusiliariaSerpente->show();
+			QPropertyAnimation* AuxAnim=new QPropertyAnimation(AusiliariaSerpente,"pos",this);
+			AuxAnim->setDuration(VelocitaGioco/difficolta);
+			AuxAnim->setEasingCurve(QEasingCurve::Linear);
+			if (CoordinateSerpente.at(CoordinateSerpente.size()-2).GetX()<0){
+				AuxAnim->setKeyValueAt(0.0,QPoint(width(),CoordinateSerpente.at(CoordinateSerpente.size()-2).GetY()*height()/NumeroCaselle));
+				AuxAnim->setKeyValueAt(1.0,QPoint((NumeroCaselle-1)*width()/NumeroCaselle,CoordinateSerpente.at(CoordinateSerpente.size()-2).GetY()*height()/NumeroCaselle));
+			}
+			else if (CoordinateSerpente.at(CoordinateSerpente.size()-2).GetX()>=NumeroCaselle){
+				AuxAnim->setKeyValueAt(0.0,QPoint(-width()/NumeroCaselle,CoordinateSerpente.at(CoordinateSerpente.size()-2).GetY()*height()/NumeroCaselle));
+				AuxAnim->setKeyValueAt(1.0,QPoint(0,CoordinateSerpente.at(CoordinateSerpente.size()-2).GetY()*height()/NumeroCaselle));
+			}
+			else if (CoordinateSerpente.at(CoordinateSerpente.size()-2).GetY()>=NumeroCaselle){
+				AuxAnim->setKeyValueAt(0.0,QPoint(CoordinateSerpente.at(CoordinateSerpente.size()-2).GetX()*width()/NumeroCaselle,-height()/NumeroCaselle));
+				AuxAnim->setKeyValueAt(1.0,QPoint(CoordinateSerpente.at(CoordinateSerpente.size()-2).GetX()*width()/NumeroCaselle,0));
+			}
+			else if (CoordinateSerpente.at(CoordinateSerpente.size()-2).GetY()<0){
+				AuxAnim->setKeyValueAt(0.0,QPoint(CoordinateSerpente.at(CoordinateSerpente.size()-2).GetX()*width()/NumeroCaselle,height()));
+				AuxAnim->setKeyValueAt(1.0,QPoint(CoordinateSerpente.at(CoordinateSerpente.size()-2).GetX()*width()/NumeroCaselle,(NumeroCaselle-1)*height()/NumeroCaselle));
+			}
+			Animazioni->addAnimation(AuxAnim);
+		}
+
 		for (QList<CoordinateCorpo>::iterator i=CoordinateSerpente.end()-1;i!=CoordinateSerpente.begin();i--) *i=*(i-1);
+	}	
+
+	//Normalizzo le Coordinate
+	{
+		bool trovato=false;
+		for (QList<CoordinateCorpo>::iterator i=CoordinateSerpente.begin();i!=CoordinateSerpente.end() && !trovato;i++){
+			if (i->GetY()<0) i->SetY(NumeroCaselle-1);
+			if (i->GetY()>=NumeroCaselle) i->SetY(0);
+			if (i->GetX()>=NumeroCaselle) i->SetX(0);
+			if (i->GetX()<0) i->SetX(NumeroCaselle-1);
+			trovato=true;
+		}
 	}
 
 	switch (ProssimaDirezione){
@@ -737,10 +885,36 @@ void Snake::Partita(){
 			CoordinateSerpente.first().IncrementaX(-1);
 			break;
 		default:
-			animTesta->setKeyValueAt(1.0,TestaSerpente->pos());
+			animTesta->setKeyValueAt(1.0,QPoint(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle));
 	}
 	animTesta->setKeyValueAt(1.0,QPoint(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle));
 	Animazioni->addAnimation(animTesta);
+	if(!CoordinateSerpente.first().IsInside(QRect(0,0,NumeroCaselle,NumeroCaselle))){
+		Rotazione.reset();
+		Rotazione.rotate(90*CoordinateSerpente.first().GetDirezione());
+		AusiliariaSerpente->setPixmap(ImmagineTesta.transformed(Rotazione));
+		AusiliariaSerpente->show();
+		QPropertyAnimation* AuxAnim=new QPropertyAnimation(AusiliariaSerpente,"pos",this);
+		AuxAnim->setDuration(VelocitaGioco/difficolta);
+		AuxAnim->setEasingCurve(QEasingCurve::Linear);
+		if (CoordinateSerpente.first().GetX()<0){
+			AuxAnim->setKeyValueAt(0.0,QPoint(width(),CoordinateSerpente.first().GetY()*height()/NumeroCaselle));
+			AuxAnim->setKeyValueAt(1.0,QPoint((NumeroCaselle-1)*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle));
+		}
+		else if (CoordinateSerpente.first().GetX()>=NumeroCaselle){
+			AuxAnim->setKeyValueAt(0.0,QPoint(-width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle));
+			AuxAnim->setKeyValueAt(1.0,QPoint(0,CoordinateSerpente.first().GetY()*height()/NumeroCaselle));
+		}
+		else if (CoordinateSerpente.first().GetY()>=NumeroCaselle){
+			AuxAnim->setKeyValueAt(0.0,QPoint(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,-height()/NumeroCaselle));
+			AuxAnim->setKeyValueAt(1.0,QPoint(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,0));
+		}
+		else if (CoordinateSerpente.first().GetY()<0){
+			AuxAnim->setKeyValueAt(0.0,QPoint(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,height()));
+			AuxAnim->setKeyValueAt(1.0,QPoint(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,(NumeroCaselle-1)*height()/NumeroCaselle));
+		}
+		Animazioni->addAnimation(AuxAnim);
+	}
 
 	CoordinateSerpente.first().SetDirezione(ProssimaDirezione);
 	for (int i=0;i<CoordinateSerpente.size();i++){
@@ -820,6 +994,8 @@ void Snake::MostraPausa(){
 	TestaSerpente->setEnabled(false);
 	CodaSerpente->setEnabled(false);
 	Punteggio->setEnabled(false);
+	AusiliariaSerpente->setEnabled(false);
+	AusiliariaTopo->setEnabled(false);
 	QPropertyAnimation* animNuovoGioco= new QPropertyAnimation(NuovoGioco,"pos",this);
 	animNuovoGioco->setDuration(DurataAnimazioni);
 	animNuovoGioco->setEasingCurve(QEasingCurve::OutBack);
