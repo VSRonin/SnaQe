@@ -22,7 +22,7 @@ private:
 	QLabel* Topo;
 	QLabel* TopScores;
 	QLabel* OpzioniLabel;
-	QLabel* AusiliariaSerpente;
+	QList<QLabel*> AusiliariaSerpente;
 	QLabel* AusiliariaTopo;
 	QPushButton* ChiudiOpzioni;
 	QPixmap ImmagineTesta;
@@ -33,6 +33,7 @@ private:
 	QLabel* CodaSerpente;
 	QList<QLabel*> CorpoSerpente;
 	void EliminaCorpo();
+	void EliminaAusiliari();
 	int punti;
 	unsigned int difficolta;
 	unsigned short WhatToDo;
