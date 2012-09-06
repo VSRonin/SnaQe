@@ -31,6 +31,10 @@ private:
 	QPixmap ImmagineTopo;
 	QLabel* TestaSerpente;
 	QLabel* CodaSerpente;
+	QSound Score;
+	QSound Fail;
+	QSound GameOver;
+	bool Mute;
 	QList<QLabel*> CorpoSerpente;
 	void EliminaCorpo();
 	void EliminaAusiliari();

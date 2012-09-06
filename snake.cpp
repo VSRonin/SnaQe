@@ -11,8 +11,12 @@ Snake::Snake(QWidget *parent)
 ,ImmagineCorpo(":/Snake/Body.png")
 ,ImmagineTopo(":/Snake/Mouse.png")
 ,Giocando(false)
-,Salvataggio("Save.snk")
-,Records("TopScores.snk")
+,Salvataggio("Save.snq")
+,Records("TopScores.snq")
+,Score("Win.wav",this)
+,Fail("Lose.wav",this)
+,GameOver("GameOver.wav",this)
+,Mute(false)
 {
 	qsrand(QTime::currentTime().msec());
 	installEventFilter(this);
@@ -574,11 +578,42 @@ void Snake::Partita(){
 	bool mangiato=false;
 	QParallelAnimationGroup *Animazioni=new QParallelAnimationGroup;
 	connect(Animazioni,SIGNAL(finished()),this,SLOT(Partita()));
-	//Controllo i conflitti
 
-	
-	
-	
+	int DirezioneTopo;
+	if (difficolta<=5)
+		DirezioneTopo=qrand()%4;
+	else{
+		CoordinateCorpo Ipotesi(CoordinateTopo);
+		int MinDistanzaMela,MaxDistanzaSerpente;
+		int MinIpotesi=Destra,MaxIpotesi=Destra;
+		//Provo a Destra
+		if(Ipotesi.GetX()==NumeroCaselle-1) Ipotesi.SetX(0);
+		else Ipotesi.IncrementaX(1);
+		MinDistanzaMela=Ipotesi.Distanza(CoordinateMela);
+		MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first());
+		//Provo a Sinistra
+		Ipotesi=CoordinateTopo;
+		if(Ipotesi.GetX()==0) Ipotesi.SetX(NumeroCaselle-1);
+		else Ipotesi.IncrementaX(-1);
+		if (Ipotesi.Distanza(CoordinateMela)<MinDistanzaMela) {MinDistanzaMela=Ipotesi.Distanza(CoordinateMela); MinIpotesi=Sinistra;}
+		if (Ipotesi.Distanza(CoordinateSerpente.first())>MaxDistanzaSerpente) {MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first()); MaxIpotesi=Sinistra;}
+		//Provo In Su
+		Ipotesi=CoordinateTopo;
+		if(Ipotesi.GetY()==0) Ipotesi.SetY(NumeroCaselle-1);
+		else Ipotesi.IncrementaY(-1);
+		if (Ipotesi.Distanza(CoordinateMela)<MinDistanzaMela) {MinDistanzaMela=Ipotesi.Distanza(CoordinateMela); MinIpotesi=Su;}
+		if (Ipotesi.Distanza(CoordinateSerpente.first())>MaxDistanzaSerpente) {MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first()); MaxIpotesi=Su;}
+		//Provo In Giù
+		Ipotesi=CoordinateTopo;
+		if(Ipotesi.GetY()==NumeroCaselle-1) Ipotesi.SetY(0);
+		else Ipotesi.IncrementaY(1);
+		if (Ipotesi.Distanza(CoordinateMela)<MinDistanzaMela) {MinDistanzaMela=Ipotesi.Distanza(CoordinateMela); MinIpotesi=Giu;}
+		if (Ipotesi.Distanza(CoordinateSerpente.first())>MaxDistanzaSerpente) {MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first()); MaxIpotesi=Giu;}
+		if (MaxDistanzaSerpente>MinDistanzaMela) DirezioneTopo=MinIpotesi;
+		else DirezioneTopo=MaxIpotesi;
+	}
+
+	//Controllo i conflitti
 	if(
 		CoordinateSerpente.first()==CoordinateMela
 		|| (CoordinateSerpente.first().GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==0 && CoordinateSerpente.first().GetY()>=NumeroCaselle)
@@ -587,19 +622,25 @@ void Snake::Partita(){
 		|| (CoordinateSerpente.first().GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)
 
 		|| CoordinateTopo==CoordinateMela
-		|| (CoordinateTopo.GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==0 && CoordinateTopo.GetY()>=NumeroCaselle)
-		|| (CoordinateTopo.GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
-		|| (CoordinateTopo.GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==0 && CoordinateTopo.GetX()>=NumeroCaselle)
-		|| (CoordinateTopo.GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==NumeroCaselle-1 && CoordinateTopo.GetX()<0)
+		//|| (CoordinateTopo.GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==0 && CoordinateTopo.GetY()>=NumeroCaselle)
+		//|| (CoordinateTopo.GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
+		//|| (CoordinateTopo.GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==0 && CoordinateTopo.GetX()>=NumeroCaselle)
+		//|| (CoordinateTopo.GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==NumeroCaselle-1 && CoordinateTopo.GetX()<0)
 	){ //la mela è stata mangiata
-		if (
-			CoordinateSerpente.first()==CoordinateMela
+		if ( CoordinateTopo!=CoordinateMela
+			/*CoordinateSerpente.first()==CoordinateMela
 			|| (CoordinateSerpente.first().GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==0 && CoordinateSerpente.first().GetY()>=NumeroCaselle)
 			|| (CoordinateSerpente.first().GetX()==CoordinateMela.GetX() && CoordinateMela.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
 			|| (CoordinateSerpente.first().GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==0 && CoordinateSerpente.first().GetX()>=NumeroCaselle)
-			|| (CoordinateSerpente.first().GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)
+			|| (CoordinateSerpente.first().GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)*/
 		) {punti+=difficolta; mangiato=true;} //l'ha mangiata il serpente
-		else punti-=5*difficolta;  //l'ha mangiata il topo
+		else {
+			punti-=5*difficolta;
+			if (!Score.isFinished()) Score.stop();
+			if (!GameOver.isFinished()) GameOver.stop();
+			if (!Fail.isFinished()) Fail.stop();
+			if (!Mute) Fail.play();
+		}  //l'ha mangiata il topo
 		AggiornaPunti();
 		bool buono;
 		do{
@@ -613,12 +654,26 @@ void Snake::Partita(){
 		}while(!buono);
 		Mela->setGeometry(CoordinateMela.GetX()*width()/NumeroCaselle,CoordinateMela.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);	
 	}
+	{
+		bool ControllaDiFronte=false;
+		if (
+			(CoordinateSerpente.first().GetX()-CoordinateTopo.GetX()==1 && CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && ProssimaDirezione==Sinistra && DirezioneTopo==Destra)
+			|| (CoordinateSerpente.first().GetX()-CoordinateTopo.GetX()==-1 && CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && ProssimaDirezione==Destra && DirezioneTopo==Sinistra)
+			|| (CoordinateSerpente.first().GetY()-CoordinateTopo.GetY()==1 && CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && ProssimaDirezione==Su && DirezioneTopo==Giu)
+			|| (CoordinateSerpente.first().GetY()-CoordinateTopo.GetY()==-1 && CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && ProssimaDirezione==Giu && DirezioneTopo==Su)
+			|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==0 && CoordinateSerpente.first().GetX()==NumeroCaselle-1 && ProssimaDirezione==Destra && DirezioneTopo==Sinistra)
+			|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()==0 && ProssimaDirezione==Sinistra && DirezioneTopo==Destra)
+			|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()==0 && ProssimaDirezione==Su && DirezioneTopo==Giu)
+			|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==0 && CoordinateSerpente.first().GetY()==NumeroCaselle-1 && ProssimaDirezione==Giu && DirezioneTopo==Su)
+		) ControllaDiFronte=true;
+
 	if(
 		CoordinateSerpente.first()==CoordinateTopo
 		|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==0 && CoordinateSerpente.first().GetY()>=NumeroCaselle)
 		|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
 		|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==0 && CoordinateSerpente.first().GetX()>=NumeroCaselle)
 		|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)
+		|| ControllaDiFronte
 	){ //Ho mangiato il topo
 		punti+=10*difficolta;
 		AggiornaPunti();
@@ -635,7 +690,7 @@ void Snake::Partita(){
 		}while(!buono);
 		Topo->setGeometry(CoordinateTopo.GetX()*width()/NumeroCaselle,CoordinateTopo.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);	
 	}
-
+	}
 	bool vivo=true;
 	for (QList<CoordinateCorpo>::iterator i=CoordinateSerpente.begin()+1;i!=CoordinateSerpente.end() && vivo;i++){
 		if(CoordinateSerpente.first()==*i)
@@ -643,6 +698,10 @@ void Snake::Partita(){
 	}
 	Salvataggio.resize(0);
 	if (!vivo){
+		if (!Score.isFinished()) Score.stop();
+		if (!GameOver.isFinished()) GameOver.stop();
+		if (!Fail.isFinished()) Fail.stop();
+		if (!Mute) GameOver.play();
 		qint16 temp[3];
 		bool salta=false,fine=false;
 		Records.open(QIODevice::ReadOnly);
@@ -724,6 +783,68 @@ void Snake::Partita(){
 	}
 	Salvataggio.close();
 
+	//Muovo il Topo
+	
+	QPropertyAnimation* AnimaTopo=new QPropertyAnimation(Topo,"pos",this);
+	AnimaTopo->setDuration(VelocitaGioco/difficolta);
+	AnimaTopo->setEasingCurve(QEasingCurve::Linear);
+	AnimaTopo->setKeyValueAt(0.0,QPoint(CoordinateTopo.GetX()*width()/NumeroCaselle,CoordinateTopo.GetY()*height()/NumeroCaselle));
+	switch (DirezioneTopo){
+		case Su:
+			CoordinateTopo.IncrementaY(-1);			
+			break;
+		case Giu:
+			CoordinateTopo.IncrementaY(1);
+			break;
+		case Destra:
+			CoordinateTopo.IncrementaX(1);
+			break;
+		case Sinistra:
+			CoordinateTopo.IncrementaX(-1);
+			break;
+		default:
+			break;
+	}
+	Rotazione.reset();
+	Rotazione.rotate(90*DirezioneTopo);
+	Topo->setPixmap(ImmagineTopo.transformed(Rotazione));
+	CoordinateTopo.SetDirezione(DirezioneTopo);
+	AnimaTopo->setKeyValueAt(1.0,QPoint(CoordinateTopo.GetX()*width()/NumeroCaselle,CoordinateTopo.GetY()*height()/NumeroCaselle));
+	Animazioni->addAnimation(AnimaTopo);
+	if(!CoordinateTopo.IsInside(QRect(0,0,NumeroCaselle,NumeroCaselle))){
+		QPropertyAnimation* AuxTopo=new QPropertyAnimation(AusiliariaTopo,"pos",this);
+		AuxTopo->setDuration(VelocitaGioco/difficolta);
+		AuxTopo->setEasingCurve(QEasingCurve::Linear);
+		AusiliariaTopo->setPixmap(ImmagineTopo.transformed(Rotazione));
+		AusiliariaTopo->show();
+		QPoint Partenza (CoordinateTopo.GetX()*width()/NumeroCaselle,CoordinateTopo.GetY()*height()/NumeroCaselle);
+		QPoint Arrivo(CoordinateTopo.GetX()*width()/NumeroCaselle,CoordinateTopo.GetY()*height()/NumeroCaselle);
+		if (CoordinateTopo.GetX()<0){
+			Partenza.setX(width());
+			Arrivo.setX((NumeroCaselle-1)*width()/NumeroCaselle);
+			CoordinateTopo.SetX(NumeroCaselle-1);
+		}
+		if (CoordinateTopo.GetX()>=NumeroCaselle){
+			Partenza.setX(-width()/NumeroCaselle);
+			Arrivo.setX(0);
+			CoordinateTopo.SetX(0);
+		}
+		if (CoordinateTopo.GetY()<0) {
+			Partenza.setY(height());
+			Arrivo.setY((NumeroCaselle-1)*height()/NumeroCaselle);
+			CoordinateTopo.SetY(NumeroCaselle-1);
+		}
+		if (CoordinateTopo.GetY()>=NumeroCaselle){
+			Partenza.setY(-height()/NumeroCaselle);
+			Arrivo.setY(0);
+			CoordinateTopo.SetY(0);
+		}
+		AuxTopo->setKeyValueAt(0.0,Partenza);
+		AuxTopo->setKeyValueAt(1.0,Arrivo);
+		Animazioni->addAnimation(AuxTopo);
+	}
+
+	//Muovo il Serpente
 
 	QPropertyAnimation* animTesta= new QPropertyAnimation(TestaSerpente,"pos",this);
 	animTesta->setDuration(VelocitaGioco/difficolta);
@@ -741,6 +862,10 @@ void Snake::Partita(){
 	}
 
 	if (mangiato){
+		if (!Score.isFinished()) Score.stop();
+		if (!GameOver.isFinished()) GameOver.stop();
+		if (!Fail.isFinished()) Fail.stop();
+		if (!Mute) Score.play();
 		CorpoSerpente.prepend(new QLabel(this));
 		CorpoSerpente.first()->setScaledContents(true);
 		CorpoSerpente.first()->show();
