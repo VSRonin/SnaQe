@@ -3,6 +3,7 @@
 
 #include <QtGui>
 #include "CoordinateCorpo.h"
+#include "Opzioni.h"
 
 class Snake : public QWidget
 {
@@ -14,27 +15,24 @@ private:
 	QPushButton* Opzioni;
 	QPushButton* Esci;
 	QPushButton* Conferma;
-	QSpinBox* DifficoltaSpin;
-	QSlider* DifficoltaSlide;
-	QLabel* DifficoltaLabel;
 	QLabel* Punteggio;
 	QLabel* Mela;
 	QLabel* Topo;
-	QLabel* TopScores;
-	QLabel* OpzioniLabel;
 	QList<QLabel*> AusiliariaSerpente;
 	QLabel* AusiliariaTopo;
-	QPushButton* ChiudiOpzioni;
 	QPixmap ImmagineTesta;
 	QPixmap ImmagineCoda;
 	QPixmap ImmagineCorpo;
 	QPixmap ImmagineTopo;
 	QLabel* TestaSerpente;
 	QLabel* CodaSerpente;
+	WOpzioni* OpzioniWid;
 	QSound Score;
 	QSound Fail;
 	QSound GameOver;
-	bool Mute;
+	bool MuteMus;
+	bool MuteEff;
+	bool SmartMouse;
 	QList<QLabel*> CorpoSerpente;
 	void EliminaCorpo();
 	void EliminaAusiliari();
@@ -47,7 +45,6 @@ private:
 	QList<CoordinateCorpo> CoordinateSerpente;
 	bool Giocando;
 	QFile Salvataggio;
-	QFile Records;
 	enum {Boh, IniziaNuova, IniziaCaricata, Settings};
 	enum{LargezzaPulsante=160, AltezzaPulsante=40, DistanzaPulsanti=10
 		,DurataAnimazioni=1000
@@ -64,7 +61,7 @@ private slots:
 	void SetOpzioni(){WhatToDo=Settings;}
 	void MostraOpzioni();
 	void NascondiOpzioni();
-	void HideOpzioni();
+	void AggiornaOpzioni();
 	void EseguiAzione();
 	void NascondiMenu();
 	void NascondiPausa();

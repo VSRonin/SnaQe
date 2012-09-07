@@ -12,11 +12,12 @@ Snake::Snake(QWidget *parent)
 ,ImmagineTopo(":/Snake/Mouse.png")
 ,Giocando(false)
 ,Salvataggio("Save.snq")
-,Records("TopScores.snq")
 ,Score("Win.wav",this)
 ,Fail("Lose.wav",this)
 ,GameOver("GameOver.wav",this)
-,Mute(false)
+,MuteMus(false)
+,SmartMouse(false)
+,MuteEff(false)
 {
 	qsrand(QTime::currentTime().msec());
 	installEventFilter(this);
@@ -25,50 +26,18 @@ Snake::Snake(QWidget *parent)
 	Sfondo->setObjectName("Sfondo");
 	Sfondo->setMinimumSize(400,400);
 
-	DifficoltaSpin=new QSpinBox(this);
-	DifficoltaSpin->setRange(1,9);
-	DifficoltaSpin->setObjectName("DifficoltaSpin");
-	DifficoltaSpin->setValue(difficolta);
-	DifficoltaSlide=new QSlider(Qt::Horizontal,this);
-	DifficoltaSlide->setRange(1,9);
-	DifficoltaSlide->setObjectName("DifficoltaSlide");
-	DifficoltaSlide->setValue(difficolta);
-	connect(DifficoltaSlide,SIGNAL(valueChanged(int)),this,SLOT(ImpostaDifficolta(int)));
-	connect(DifficoltaSpin,SIGNAL(valueChanged(int)),this,SLOT(ImpostaDifficolta(int)));
-	connect(DifficoltaSlide,SIGNAL(valueChanged(int)),DifficoltaSpin, SLOT(setValue(int)));
-	connect(DifficoltaSpin,SIGNAL(valueChanged(int)),DifficoltaSlide, SLOT(setValue(int)));
-	DifficoltaSlide->hide();
-	DifficoltaSpin->hide();
-	DifficoltaSlide->setMinimumSize(LargezzaPulsante,AltezzaPulsante);
-	DifficoltaSpin->setMinimumSize(AltezzaPulsante,AltezzaPulsante);
-	OpzioniLabel=new QLabel(this);
-	OpzioniLabel->setObjectName("OpzioniLabel");
-	OpzioniLabel->setText(tr("Opzioni"));
-	OpzioniLabel->setScaledContents(true);
-	OpzioniLabel->hide();
-	DifficoltaLabel=new QLabel(this);
-	DifficoltaLabel->setObjectName("DifficoltaLabel");
-	DifficoltaLabel->setText(tr("Difficoltà"));
-	DifficoltaLabel->setScaledContents(true);
-	DifficoltaLabel->hide();
-	ChiudiOpzioni=new QPushButton(this);
-	ChiudiOpzioni->setObjectName("ChiudiOpzioni");
-	ChiudiOpzioni->setText(tr("Indietro"));
-	ChiudiOpzioni->setMinimumSize(LargezzaPulsante,AltezzaPulsante);
-	connect(ChiudiOpzioni,SIGNAL(clicked()),this,SLOT(NascondiOpzioni()));
-	ChiudiOpzioni->hide();
-
-
-	TopScores=new QLabel(this);
-	TopScores->setObjectName("TopScores");
-	TopScores->setScaledContents(true);
-
-
 	Punteggio=new QLabel(this);
 	Punteggio->setObjectName("Punteggio");
 	Punteggio->setText("<b>"+tr("Punteggio")+QString(": 0</b>"));
 	Punteggio->hide();
 	Punteggio->setScaledContents(true);
+
+	OpzioniWid=new WOpzioni(this);
+	OpzioniWid->setObjectName("Opzioni");
+	OpzioniWid->hide();
+	connect(OpzioniWid,SIGNAL(Annullato()),this,SLOT(NascondiOpzioni()));
+	connect(OpzioniWid,SIGNAL(Confermato()),this,SLOT(NascondiOpzioni()));
+	connect(OpzioniWid,SIGNAL(Confermato()),this,SLOT(AggiornaOpzioni()));
 
 	Mela=new QLabel(this);
 	Mela->setObjectName("Mela");
@@ -143,6 +112,12 @@ Snake::Snake(QWidget *parent)
 	CorpoSerpente.clear();
 
 	setStyleSheet(CSS::Principale);
+}
+void Snake::AggiornaOpzioni(){
+	difficolta=OpzioniWid->GetDifficolta();
+	SmartMouse=OpzioniWid->GetSmartMouse();
+	MuteEff=OpzioniWid->GetMuteEff();
+	MuteMus=OpzioniWid->GetMuteMus();
 }
 void Snake::MostraMenu(){
 	CaricaGioco->setEnabled(Salvataggio.size()>0);
@@ -241,124 +216,24 @@ void Snake::HideMenuItems(){
 	Esci->hide();
 }
 void Snake::MostraOpzioni(){
-	ChiudiOpzioni->show();
-	OpzioniLabel->show();
-	DifficoltaSlide->show();
-	DifficoltaSpin->show();
-	TopScores->show();
-	DifficoltaLabel->show();
-	ChiudiOpzioni->raise();
-	OpzioniLabel->raise();
-	DifficoltaSlide->raise();
-	DifficoltaSpin->raise();
-	TopScores->raise();
-	DifficoltaLabel->raise();
-	quint16 punteggi[3];
-	if (Records.size()==0) {punteggi[0]=punteggi[1]=punteggi[2]=0;}
-	else{
-		Records.open(QIODevice::ReadOnly);
-		QDataStream dati(&Records);
-		dati.setVersion(QDataStream::Qt_4_7);
-		dati >> *punteggi;
-		if (*punteggi!=NumeroMagico) {punteggi[0]=punteggi[1]=punteggi[2]=0;}
-		else{
-			dati >> punteggi[0];
-			dati >> punteggi[1];
-			dati >> punteggi[2];
-		}
-		Records.close();
-	}
-	TopScores->setText("<b>"+tr("Punteggi Migliori:")+QString("</b><br>1) %1<br>2) %2<br>3) %3").arg(punteggi[0]).arg(punteggi[1]).arg(punteggi[2]));
-	TopScores->resize(TopScores->sizeHint());
-	QParallelAnimationGroup *Animazioni=new QParallelAnimationGroup;
-	QPropertyAnimation* temp=new QPropertyAnimation(TopScores,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::OutBack);
-	temp->setKeyValueAt(0.0,QPoint((width()-TopScores->width())/2,-40));
-	temp->setKeyValueAt(1.0,QPoint((width()-TopScores->width())/2,height()/2+10));
-	Animazioni->addAnimation(temp);
-	temp=NULL;
-	temp=new QPropertyAnimation(DifficoltaSpin,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::OutBack);
-	temp->setKeyValueAt(0.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2,-40));
-	temp->setKeyValueAt(1.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2,height()/4+10));
-	Animazioni->addAnimation(temp);
-	temp=NULL;
-	temp=new QPropertyAnimation(DifficoltaSlide,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::OutBack);
-	temp->setKeyValueAt(0.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2+15+DifficoltaSpin->width(),-40));
-	temp->setKeyValueAt(1.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2+15+DifficoltaSpin->width(),height()/4+10));
-	Animazioni->addAnimation(temp);
-	temp=NULL;
-	temp=new QPropertyAnimation(DifficoltaLabel,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::OutBack);
-	temp->setKeyValueAt(0.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2,-40));
-	temp->setKeyValueAt(1.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2,height()/4-DifficoltaLabel->height()));
-	Animazioni->addAnimation(temp);
-	temp=NULL;
-	temp=new QPropertyAnimation(OpzioniLabel,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::OutBack);
-	temp->setKeyValueAt(0.0,QPoint((width()-OpzioniLabel->width())/2,-40));
-	temp->setKeyValueAt(1.0,QPoint((width()-OpzioniLabel->width())/2,15));
-	Animazioni->addAnimation(temp);
-	temp=NULL;
-	temp=new QPropertyAnimation(ChiudiOpzioni,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::OutBack);
-	temp->setKeyValueAt(0.0,QPoint((width()-ChiudiOpzioni->width())/2,-40));
-	temp->setKeyValueAt(1.0,QPoint((width()-ChiudiOpzioni->width())/2,3*height()/4));
-	Animazioni->addAnimation(temp);
-	Animazioni->start(QAbstractAnimation::DeleteWhenStopped);
+	OpzioniWid->AggiornaTopScores();
+	OpzioniWid->show();
+	OpzioniWid->raise();
+	QPropertyAnimation* animOpzioni= new QPropertyAnimation(OpzioniWid,"pos",this);
+	animOpzioni->setDuration(DurataAnimazioni);
+	animOpzioni->setEasingCurve(QEasingCurve::OutBack);
+	animOpzioni->setKeyValueAt(1.0,QPoint((width()-OpzioniWid->width())/2,(height()-OpzioniWid->height())/2));
+	animOpzioni->setKeyValueAt(0.0,QPoint((width()-OpzioniWid->width())/2,-OpzioniWid->height()-40));
+	animOpzioni->start(QAbstractAnimation::DeleteWhenStopped);
 }
 void Snake::NascondiOpzioni(){
-	QParallelAnimationGroup *Animazioni=new QParallelAnimationGroup;
-	QPropertyAnimation* temp=new QPropertyAnimation(TopScores,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::InBack);
-	temp->setKeyValueAt(1.0,QPoint((width()-TopScores->width())/2,-40));
-	temp->setKeyValueAt(0.0,QPoint((width()-TopScores->width())/2,height()/2+10));
-	Animazioni->addAnimation(temp);
-	temp=NULL;
-	temp=new QPropertyAnimation(DifficoltaSpin,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::InBack);
-	temp->setKeyValueAt(1.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2,-40));
-	temp->setKeyValueAt(0.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2,height()/4+10));
-	Animazioni->addAnimation(temp);
-	temp=NULL;
-	temp=new QPropertyAnimation(DifficoltaSlide,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::InBack);
-	temp->setKeyValueAt(1.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2+15+DifficoltaSpin->width(),-40));
-	temp->setKeyValueAt(0.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2+15+DifficoltaSpin->width(),height()/4+10));
-	Animazioni->addAnimation(temp);
-	temp=NULL;
-	temp=new QPropertyAnimation(DifficoltaLabel,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::InBack);
-	temp->setKeyValueAt(1.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2,-40));
-	temp->setKeyValueAt(0.0,QPoint((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2,height()/4-DifficoltaLabel->height()));
-	Animazioni->addAnimation(temp);
-	temp=NULL;
-	temp=new QPropertyAnimation(OpzioniLabel,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::InBack);
-	temp->setKeyValueAt(1.0,QPoint((width()-OpzioniLabel->width())/2,-40));
-	temp->setKeyValueAt(0.0,QPoint((width()-OpzioniLabel->width())/2,15));
-	Animazioni->addAnimation(temp);
-	temp=NULL;
-	temp=new QPropertyAnimation(ChiudiOpzioni,"pos",this);
-	temp->setDuration(DurataAnimazioni);
-	temp->setEasingCurve(QEasingCurve::InBack);
-	temp->setKeyValueAt(1.0,QPoint((width()-ChiudiOpzioni->width())/2,-40));
-	temp->setKeyValueAt(0.0,QPoint((width()-ChiudiOpzioni->width())/2,3*height()/4));
-	Animazioni->addAnimation(temp);
-	connect(Animazioni,SIGNAL(finished()),this,SLOT(HideOpzioni()));
-	if (!Punteggio->isVisible()) connect(Animazioni,SIGNAL(finished()),this,SLOT(MostraMenu()));
+	QPropertyAnimation* animOpzioni= new QPropertyAnimation(OpzioniWid,"pos",this);
+	animOpzioni->setDuration(DurataAnimazioni);
+	animOpzioni->setEasingCurve(QEasingCurve::InBack);
+	animOpzioni->setKeyValueAt(0.0,QPoint((width()-OpzioniWid->width())/2,(height()-OpzioniWid->height())/2));
+	animOpzioni->setKeyValueAt(1.0,QPoint((width()-OpzioniWid->width())/2,-OpzioniWid->height()-40));
+	connect(animOpzioni,SIGNAL(finished()),OpzioniWid,SLOT(hide()));
+	if (!Punteggio->isVisible()) connect(animOpzioni,SIGNAL(finished()),this,SLOT(MostraMenu()));
 	else{
 		Giocando=true;
 		Mela->setEnabled(true);
@@ -369,17 +244,9 @@ void Snake::NascondiOpzioni(){
 		Punteggio->setEnabled(true);
 		for(QList<QLabel*>::iterator i=AusiliariaSerpente.begin();i!=AusiliariaSerpente.end();i++) (*i)->setEnabled(true);
 		AusiliariaTopo->setEnabled(true);
-		connect(Animazioni,SIGNAL(finished()),this,SLOT(Partita()));
+		connect(animOpzioni,SIGNAL(finished()),this,SLOT(Partita()));
 	}
-	Animazioni->start(QAbstractAnimation::DeleteWhenStopped);
-}
-void Snake::HideOpzioni(){
-	ChiudiOpzioni->hide();
-	OpzioniLabel->hide();
-	DifficoltaSlide->hide();
-	DifficoltaSpin->hide();
-	TopScores->hide();
-	DifficoltaLabel->hide();
+	animOpzioni->start(QAbstractAnimation::DeleteWhenStopped);
 }
 void Snake::NuovaPartita(){
 	Salvataggio.resize(0);
@@ -527,18 +394,9 @@ void Snake::resizeEvent(QResizeEvent *event){
 	AusiliariaTopo->resize(width()/NumeroCaselle,height()/NumeroCaselle);
 	for (int i=0;i<CorpoSerpente.size();i++)
 		CorpoSerpente.at(i)->setGeometry(CoordinateSerpente.at(i+1).GetX()*width()/NumeroCaselle,CoordinateSerpente.at(i+1).GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
-	TopScores->resize(width()*TopScores->sizeHint().width()/400,height()*TopScores->sizeHint().height()/400);
-	TopScores->move((width()-TopScores->width())/2,height()/2+10);
-	DifficoltaSpin->resize(width()*DifficoltaSpin->sizeHint().width()/400,height()*DifficoltaSpin->sizeHint().height()/400);
-	DifficoltaSlide->resize(width()*DifficoltaSlide->sizeHint().width()/400,height()*DifficoltaSlide->sizeHint().height()/400);
-	DifficoltaSpin->move((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2,height()/4+10);
-	DifficoltaSlide->move((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2+15+DifficoltaSpin->width(),height()/4+10);
-	DifficoltaLabel->resize(width()*DifficoltaLabel->sizeHint().width()/400,height()*DifficoltaLabel->sizeHint().height()/400);
-	DifficoltaLabel->move((width()-DifficoltaSpin->width()-DifficoltaSlide->width()-15)/2,height()/4-DifficoltaLabel->height());
-	OpzioniLabel->resize(width()*OpzioniLabel->sizeHint().width()/400,height()*OpzioniLabel->sizeHint().height()/400);
-	OpzioniLabel->move((width()-OpzioniLabel->width())/2,15);
-	ChiudiOpzioni->resize(width()*ChiudiOpzioni->sizeHint().width()/400,height()*ChiudiOpzioni->sizeHint().height()/400);
-	ChiudiOpzioni->move((width()-ChiudiOpzioni->width())/2,3*height()/4);
+	if (OpzioniWid->sizeHint().width()>width()/2 || OpzioniWid->sizeHint().height()>height()/2) OpzioniWid->resize(OpzioniWid->sizeHint());
+	else OpzioniWid->resize(width()/2,height()/2);
+	OpzioniWid->move(width()/4,height()/4);
 	Conferma->setGeometry((width()-Conferma->width())/2,3*height()/4,LargezzaPulsante,AltezzaPulsante);
 }
 void Snake::EseguiAzione(){
@@ -580,7 +438,7 @@ void Snake::Partita(){
 	connect(Animazioni,SIGNAL(finished()),this,SLOT(Partita()));
 
 	int DirezioneTopo;
-	if (difficolta<=5)
+	if (!SmartMouse)
 		DirezioneTopo=qrand()%4;
 	else{
 		CoordinateCorpo Ipotesi(CoordinateTopo);
@@ -635,11 +493,11 @@ void Snake::Partita(){
 			|| (CoordinateSerpente.first().GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)*/
 		) {punti+=difficolta; mangiato=true;} //l'ha mangiata il serpente
 		else {
-			punti-=5*difficolta;
+			punti-=5*difficolta+4*difficolta*SmartMouse;
 			if (!Score.isFinished()) Score.stop();
 			if (!GameOver.isFinished()) GameOver.stop();
 			if (!Fail.isFinished()) Fail.stop();
-			if (!Mute) Fail.play();
+			if (!MuteEff) Fail.play();
 		}  //l'ha mangiata il topo
 		AggiornaPunti();
 		bool buono;
@@ -655,7 +513,7 @@ void Snake::Partita(){
 		Mela->setGeometry(CoordinateMela.GetX()*width()/NumeroCaselle,CoordinateMela.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);	
 	}
 	{
-		bool ControllaDiFronte=false;
+		/*bool ControllaDiFronte=false;
 		if (
 			(CoordinateSerpente.first().GetX()-CoordinateTopo.GetX()==1 && CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && ProssimaDirezione==Sinistra && DirezioneTopo==Destra)
 			|| (CoordinateSerpente.first().GetX()-CoordinateTopo.GetX()==-1 && CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && ProssimaDirezione==Destra && DirezioneTopo==Sinistra)
@@ -665,7 +523,7 @@ void Snake::Partita(){
 			|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()==0 && ProssimaDirezione==Sinistra && DirezioneTopo==Destra)
 			|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()==0 && ProssimaDirezione==Su && DirezioneTopo==Giu)
 			|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==0 && CoordinateSerpente.first().GetY()==NumeroCaselle-1 && ProssimaDirezione==Giu && DirezioneTopo==Su)
-		) ControllaDiFronte=true;
+		) ControllaDiFronte=true;*/
 
 	if(
 		CoordinateSerpente.first()==CoordinateTopo
@@ -673,9 +531,16 @@ void Snake::Partita(){
 		|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
 		|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==0 && CoordinateSerpente.first().GetX()>=NumeroCaselle)
 		|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)
-		|| ControllaDiFronte
+		|| (CoordinateSerpente.first().GetX()-CoordinateTopo.GetX()==1 && CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && ProssimaDirezione==Sinistra && DirezioneTopo==Destra)
+		|| (CoordinateSerpente.first().GetX()-CoordinateTopo.GetX()==-1 && CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && ProssimaDirezione==Destra && DirezioneTopo==Sinistra)
+		|| (CoordinateSerpente.first().GetY()-CoordinateTopo.GetY()==1 && CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && ProssimaDirezione==Su && DirezioneTopo==Giu)
+		|| (CoordinateSerpente.first().GetY()-CoordinateTopo.GetY()==-1 && CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && ProssimaDirezione==Giu && DirezioneTopo==Su)
+		|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==0 && CoordinateSerpente.first().GetX()==NumeroCaselle-1 && ProssimaDirezione==Destra && DirezioneTopo==Sinistra)
+		|| (CoordinateSerpente.first().GetY()==CoordinateTopo.GetY() && CoordinateTopo.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()==0 && ProssimaDirezione==Sinistra && DirezioneTopo==Destra)
+		|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()==0 && ProssimaDirezione==Su && DirezioneTopo==Giu)
+		|| (CoordinateSerpente.first().GetX()==CoordinateTopo.GetX() && CoordinateTopo.GetY()==0 && CoordinateSerpente.first().GetY()==NumeroCaselle-1 && ProssimaDirezione==Giu && DirezioneTopo==Su)
 	){ //Ho mangiato il topo
-		punti+=10*difficolta;
+		punti+=10*difficolta+90*difficolta*SmartMouse;
 		AggiornaPunti();
 		mangiato=true;
 		bool buono;
@@ -701,41 +566,9 @@ void Snake::Partita(){
 		if (!Score.isFinished()) Score.stop();
 		if (!GameOver.isFinished()) GameOver.stop();
 		if (!Fail.isFinished()) Fail.stop();
-		if (!Mute) GameOver.play();
-		qint16 temp[3];
-		bool salta=false,fine=false;
-		Records.open(QIODevice::ReadOnly);
-		QDataStream dati(&Records);
-		dati.setVersion(QDataStream::Qt_4_7);
-		if (Records.size()==0) salta=true;
-		if (!salta){
-			dati >> *temp;
-			if (*temp!=NumeroMagico) salta=true;
-		}
-		if (!salta){
-			dati >> *temp;
-			dati >> temp[1];
-			dati >> temp[2];
-			if (*temp<punti){temp[2]=temp[1]; temp[1]=*temp; *temp=punti;}
-			else if (temp[1]<punti) {temp[2]=temp[1]; temp[1]=punti;}
-			else if (temp[2]<punti) {temp[2]=punti;}
-			else fine=true;
-		}
-		if (salta){
-			*temp=punti;
-			temp[1]=0;
-			temp[2]=0;
-		}
-		Records.close();
-		if (!fine){
-			Records.resize(0);
-			Records.open(QIODevice::WriteOnly);
-			QDataStream Output(&Records);
-			Output.setVersion(QDataStream::Qt_4_7);
-			Output << qint16(NumeroMagico) << *temp << temp[1] << temp[2];
-			Records.close();
-		}
+		if (!MuteEff) GameOver.play();
 
+		OpzioniWid->SalvaRecord(punti);
 
 		Conferma->show();
 		Conferma->raise();
@@ -865,7 +698,7 @@ void Snake::Partita(){
 		if (!Score.isFinished()) Score.stop();
 		if (!GameOver.isFinished()) GameOver.stop();
 		if (!Fail.isFinished()) Fail.stop();
-		if (!Mute) Score.play();
+		if (!MuteEff) Score.play();
 		CorpoSerpente.prepend(new QLabel(this));
 		CorpoSerpente.first()->setScaledContents(true);
 		CorpoSerpente.first()->show();
@@ -1188,7 +1021,7 @@ bool Snake::eventFilter(QObject *target, QEvent *event){
 			else if(NuovoGioco->isVisible() && TestaSerpente->isVisible()){
 				NascondiPausa();
 			}
-			else if(OpzioniLabel->isVisible()){
+			else if(OpzioniWid->isVisible()){
 				NascondiOpzioni();
 			}
 		}
