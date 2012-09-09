@@ -9,6 +9,7 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 ,Records("TopScores.snq")
 ,VolumeMus(5)
 ,VolumeEff(5)
+,SchemaScelto(0)
 {
 	OpzioniLabel=new QLabel(this);
 	OpzioniLabel->setObjectName("OpzioniLabel");
@@ -96,6 +97,18 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	TopScores->setScaledContents(true);
 	TopScores->setText("<b>"+tr("Punteggi Migliori:")+"</b><br>1) 0<br>2) 0<br>3) 0");
 
+	SelettoreSchema=new SelettoreImmagini(this);
+	SelettoreSchema->setObjectName("SelettoreSchema");
+	SelettoreSchema->ImpostaPosDidascalia(SelettoreImmagini::Sopra);
+	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Libero.png"),tr("Libero"));
+	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Gabbia.png"),tr("Gabbia"));
+	connect(SelettoreSchema,SIGNAL(IndexChanged(int)),this,SLOT(ImpostaSchema(int)));
+	SchemaLabel=new QLabel(this);
+	SchemaLabel->setObjectName("SchemaLabel");
+	SchemaLabel->setText(tr("Schema"));
+	QVBoxLayout *LayoutSchemi=new QVBoxLayout;
+	LayoutSchemi->addWidget(SchemaLabel);
+	LayoutSchemi->addWidget(SelettoreSchema);
 	
 	Annulla=new QPushButton(this);
 	Annulla->setObjectName("Annulla");
@@ -122,10 +135,8 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	LayoutOpzioni->addLayout(LayoutMusica,1,1,1,1);
 	LayoutOpzioni->addLayout(LayoutEffetti,2,1,1,1);
 	LayoutOpzioni->addWidget(TopScores,3,1,1,1);
-	LayoutOpzioni->addLayout(LayoutPulsanti,4,0,1,2);
-	//Temp for testing
-	QSpacerItem* SpaziatoreTest=new QSpacerItem(20,20,QSizePolicy::Minimum,QSizePolicy::Expanding);
-	LayoutOpzioni->addItem(SpaziatoreTest,2,0,2,1);
+	LayoutOpzioni->addLayout(LayoutSchemi,2,0,2,1);
+	LayoutOpzioni->addLayout(LayoutPulsanti,4,0,1,2);	
 }
 void WOpzioni::AggiornaTopScores(){
 	quint16 punteggi[3];

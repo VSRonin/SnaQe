@@ -5,5 +5,10 @@
         <file alias="Head.png">Resources/snake_head.png</file>
         <file alias="Tail.png">Resources/snake_tail.png</file>
         <file alias="Mouse.png">Resources/animals-mouse.png</file>
+        <file alias="Stone.png">Resources/Stone.png</file>
+    </qresource>
+    <qresource prefix="/Schemi">
+        <file alias="Libero.png">Resources/Schemi/Libero.png</file>
+        <file alias="Gabbia.png">Resources/Schemi/Gabbia.png</file>
     </qresource>
 </RCC>

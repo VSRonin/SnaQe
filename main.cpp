@@ -5,8 +5,7 @@
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	//Snake w;
-	SelettoreImmagini w;
+	Snake w;
 	w.show();
 	return a.exec();
 }

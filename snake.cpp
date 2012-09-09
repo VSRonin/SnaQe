@@ -10,6 +10,7 @@ Snake::Snake(QWidget *parent)
 ,ImmagineCoda(":/Snake/Tail.png")
 ,ImmagineCorpo(":/Snake/Body.png")
 ,ImmagineTopo(":/Snake/Mouse.png")
+,ImmagineSasso(":/Snake/Stone.png")
 ,Giocando(false)
 ,Salvataggio("Save.snq")
 ,Score("Win.wav",this)
@@ -18,6 +19,7 @@ Snake::Snake(QWidget *parent)
 ,MuteMus(false)
 ,SmartMouse(false)
 ,MuteEff(false)
+,SchemaCorrente(0)
 {
 	qsrand(QTime::currentTime().msec());
 	installEventFilter(this);
@@ -118,6 +120,7 @@ void Snake::AggiornaOpzioni(){
 	SmartMouse=OpzioniWid->GetSmartMouse();
 	MuteEff=OpzioniWid->GetMuteEff();
 	MuteMus=OpzioniWid->GetMuteMus();
+	if (OpzioniWid->GetSchemaScelto()!=SchemaCorrente) ImpostaSchema(OpzioniWid->GetSchemaScelto());
 }
 void Snake::MostraMenu(){
 	CaricaGioco->setEnabled(Salvataggio.size()>0);
@@ -217,6 +220,8 @@ void Snake::HideMenuItems(){
 }
 void Snake::MostraOpzioni(){
 	OpzioniWid->AggiornaTopScores();
+	if (TestaSerpente->isVisible()) OpzioniWid->AttivaSelettoreSchema(false);
+	else OpzioniWid->AttivaSelettoreSchema(true);
 	OpzioniWid->show();
 	OpzioniWid->raise();
 	QPropertyAnimation* animOpzioni= new QPropertyAnimation(OpzioniWid,"pos",this);
@@ -262,6 +267,7 @@ void Snake::NuovaPartita(){
 			CorpoSerpente.last()->show();
 		}
 	}
+	for (QList<QLabel*>::iterator i=Ostacoli.begin();i!=Ostacoli.end();i++) (*i)->show();
 	QTransform Rotazione;
 	for (int i=0;i<CoordinateSerpente.size();i++){
 		Rotazione.reset();
@@ -396,7 +402,9 @@ void Snake::resizeEvent(QResizeEvent *event){
 		CorpoSerpente.at(i)->setGeometry(CoordinateSerpente.at(i+1).GetX()*width()/NumeroCaselle,CoordinateSerpente.at(i+1).GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 	if (OpzioniWid->sizeHint().width()>width()/2 || OpzioniWid->sizeHint().height()>height()/2) OpzioniWid->resize(OpzioniWid->sizeHint());
 	else OpzioniWid->resize(width()/2,height()/2);
-	OpzioniWid->move(width()/4,height()/4);
+	OpzioniWid->move((width()-OpzioniWid->width())/2,(height()-OpzioniWid->height())/2);
+	for (int i=0;i<Ostacoli.size();i++)
+		Ostacoli.at(i)->setGeometry(CoordinateOstacoli.at(i).GetX()*width()/NumeroCaselle,CoordinateOstacoli.at(i).GetY()*width()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 	Conferma->setGeometry((width()-Conferma->width())/2,3*height()/4,LargezzaPulsante,AltezzaPulsante);
 }
 void Snake::EseguiAzione(){
@@ -1027,4 +1035,33 @@ bool Snake::eventFilter(QObject *target, QEvent *event){
 		}
 	}
 	return QWidget::eventFilter(target, event);
+}
+void Snake::ImpostaSchema(int a){
+	switch(a){
+		case SchemaLibero:
+			CoordinateOstacoli.clear();
+			if (!Ostacoli.isEmpty()) {for (QList<QLabel*>::iterator i=Ostacoli.begin();i!=Ostacoli.end();i++) (*i)->deleteLater();}
+			Ostacoli.clear();
+			break;
+		case SchemaGabbia:
+			if (!Ostacoli.isEmpty()) {for (QList<QLabel*>::iterator i=Ostacoli.begin();i!=Ostacoli.end();i++) (*i)->deleteLater();}
+			Ostacoli.clear();
+			CoordinateOstacoli.clear();
+			for (int i=0;i<NumeroCaselle;i++){
+				CoordinateOstacoli.append(CoordinateCorpo(i,0));
+				CoordinateOstacoli.append(CoordinateCorpo(i,NumeroCaselle-1));
+				if(i!=0 && i!=NumeroCaselle-1){
+					CoordinateOstacoli.append(CoordinateCorpo(0,i));
+					CoordinateOstacoli.append(CoordinateCorpo(NumeroCaselle-1,i));
+				}
+			}
+			for (int i=0;i<CoordinateOstacoli.size();i++){
+				Ostacoli.append(new QLabel(this));
+				Ostacoli.last()->setScaledContents(true);
+				Ostacoli.last()->setPixmap(ImmagineSasso);
+				Ostacoli.last()->hide();
+			}
+			break;
+	}
+	update();
 }

@@ -18,25 +18,38 @@ private:
 	QFrame* Displayer;
 	QLabel* IconaCorrente;
 	QLabel* IconaSuccessiva;
-	QLabel* IconaPrecedente;
+	QLabel* DidascaliaSopra;
+	QLabel* DidascaliaSotto;
 	QPixmap Freccia;
 	QPixmap VoidImage;
 	QList<QPixmap> Immagini;
-	unsigned int IndiceCorrente;
+	QList<QString> Didascalie;
+	int IndiceCorrente;
 	unsigned int DurataAnimazione;
+	int VisDidascalia;
+	bool Continua;
+	int SettingIndex;
+	void AggiornaAttivazionePulsanti();
 public:
 	enum{Verticale,Orizzontale};
+	enum{Nessuna,Sopra,Sotto};
 	SelettoreImmagini(QWidget* parent=0, int Orient=Orizzontale);
 	int GetOrientamento() const {return Orientamento;}
-	void AggiungiImmagine(const QPixmap& fonte);
+	void AggiungiImmagine(const QPixmap& fonte, const QString& Didas="");
+	int GetIndex() const {return IndiceCorrente;}
 protected:
 	void resizeEvent(QResizeEvent *event);
 public slots:
 	void SetIndex(int a);
+	void ImpostaPosDidascalia(int a);
+	void ImpostaOrientamento(int a);
 private slots:
+	void ImpostaContinua(){Continua=true;}
 	void NextImage();
 	void PrevImage();
 	void Successiva();
 	void Precedente();
+signals:
+	void IndexChanged(int);
 };
 #endif

@@ -1,4 +1,6 @@
-
+#ignore save files created by the game
+*.snq
+*.snk
 #ignore thumbnails created by windows
 Thumbs.db
 #Ignore files build by Visual Studio
@@ -23,7 +25,6 @@ Thumbs.db
 [Dd]ebug*/
 *.lib
 *.sbr
-*.snq
 obj/
 [Rr]elease*/
 _ReSharper*/

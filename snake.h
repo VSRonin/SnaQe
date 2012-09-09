@@ -24,6 +24,7 @@ private:
 	QPixmap ImmagineCoda;
 	QPixmap ImmagineCorpo;
 	QPixmap ImmagineTopo;
+	QPixmap ImmagineSasso;
 	QLabel* TestaSerpente;
 	QLabel* CodaSerpente;
 	WOpzioni* OpzioniWid;
@@ -37,12 +38,15 @@ private:
 	void EliminaCorpo();
 	void EliminaAusiliari();
 	int punti;
+	int SchemaCorrente;
 	unsigned int difficolta;
 	unsigned short WhatToDo;
 	unsigned short ProssimaDirezione;
 	CoordinateCorpo CoordinateMela;
 	CoordinateCorpo CoordinateTopo;
 	QList<CoordinateCorpo> CoordinateSerpente;
+	QList<CoordinateCorpo> CoordinateOstacoli;
+	QList<QLabel*> Ostacoli;
 	bool Giocando;
 	QFile Salvataggio;
 	enum {Boh, IniziaNuova, IniziaCaricata, Settings};
@@ -52,6 +56,7 @@ private:
 	enum{Su,Destra,Giu,Sinistra};
 	enum {VelocitaGioco=1000};
 	enum {NumeroMagico=8889};
+	enum {SchemaLibero,SchemaGabbia};
 protected:
 	void resizeEvent(QResizeEvent *event);
 	bool eventFilter(QObject *target, QEvent *event);
@@ -73,6 +78,7 @@ private slots:
 	void AggiornaPunti();
 	void Partita();
 	void ImpostaDifficolta(int a){difficolta=a;}
+	void ImpostaSchema(int a);
 
 public:
 	Snake(QWidget *parent = 0);

@@ -1,5 +1,6 @@
 #ifndef OPZIONI_H
 #define OPZIONI_H
+#include "SelettoreImmagini.h"
 #include <QWidget>
 #include <QFile>
 #include <QLabel>
@@ -28,6 +29,10 @@ private:
 	
 	QFile Records;
 	QLabel* TopScores;
+
+	int SchemaScelto;
+	QLabel* SchemaLabel;
+	SelettoreImmagini* SelettoreSchema;
 	
 	QPushButton* Conferma;
 	QPushButton* Annulla;
@@ -48,6 +53,7 @@ private slots:
 	void ImpostaMuteMus(bool a){MuteMus=a;}
 	void ImpostaMuteEff(bool a){MuteEff=a;}
 	void ImpostaIntelligenza(bool a){SmartMouse=a;}
+	void ImpostaSchema(int a){SchemaScelto=a;}
 	void AggiornaTestoDifficolta(int a) {DifficoltaNum->setText(QString("%1").arg(a));}
 	void AggiornaTestoVolMus(int a) {VolumeMusNum->setText(QString("%1").arg(a));}
 	void AggiornaTestoVolEff(int a) {VolumeEffNum->setText(QString("%1").arg(a));}
@@ -61,9 +67,11 @@ public:
 	unsigned int GetVolumeEff() const {return VolumeEff;}
 	bool GetMuteMus() const {return MuteMus;}
 	bool GetMuteEff() const {return MuteEff;}
+	int GetSchemaScelto() const {return SchemaScelto;}
 	bool GetSmartMouse() const {return SmartMouse;}
 	void SalvaRecord(int punti);
 	void AggiornaTopScores();
+	void AttivaSelettoreSchema(bool a) {SelettoreSchema->setEnabled(a);}
 
 };
 #endif
