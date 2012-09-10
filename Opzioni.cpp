@@ -102,6 +102,9 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	SelettoreSchema->ImpostaPosDidascalia(SelettoreImmagini::Sopra);
 	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Libero.png"),tr("Libero"));
 	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Gabbia.png"),tr("Gabbia"));
+	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Angoli.png"),tr("Angoli"));
+	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Labirinto.png"),tr("Labirinto"));
+	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Gabbia.png"),tr("Casuale"));
 	connect(SelettoreSchema,SIGNAL(IndexChanged(int)),this,SLOT(ImpostaSchema(int)));
 	SchemaLabel=new QLabel(this);
 	SchemaLabel->setObjectName("SchemaLabel");

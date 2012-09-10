@@ -37,6 +37,7 @@ private:
 	QList<QLabel*> CorpoSerpente;
 	void EliminaCorpo();
 	void EliminaAusiliari();
+	void EliminaOstacoli();
 	int punti;
 	int SchemaCorrente;
 	unsigned int difficolta;
@@ -56,7 +57,7 @@ private:
 	enum{Su,Destra,Giu,Sinistra};
 	enum {VelocitaGioco=1000};
 	enum {NumeroMagico=8889};
-	enum {SchemaLibero,SchemaGabbia};
+	enum {SchemaLibero,SchemaGabbia,SchemaAngoli,SchemaLabirinto,SchemaCasuale};
 protected:
 	void resizeEvent(QResizeEvent *event);
 	bool eventFilter(QObject *target, QEvent *event);

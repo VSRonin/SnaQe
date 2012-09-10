@@ -10,5 +10,6 @@
     <qresource prefix="/Schemi">
         <file alias="Libero.png">Resources/Schemi/Libero.png</file>
         <file alias="Gabbia.png">Resources/Schemi/Gabbia.png</file>
+        <file alias="Angoli.png">Resources/Schemi/Angoli.png</file>
     </qresource>
 </RCC>

@@ -129,12 +129,16 @@ void Snake::MostraMenu(){
 	CaricaGioco->show();
 	CaricaGioco->setText(tr("Carica Partita"));
 	Opzioni->show();
+	Esci->setText(tr("Esci"));
 	Esci->show();
+	Esci->disconnect();
+	connect(Esci,SIGNAL(clicked()),this,SLOT(close()));
 	Mela->hide();
 	Topo->hide();
 	AusiliariaTopo->hide();
 	EliminaCorpo();
 	EliminaAusiliari();
+	EliminaOstacoli();
 	TestaSerpente->hide();
 	CodaSerpente->hide();
 	Punteggio->hide();
@@ -220,8 +224,7 @@ void Snake::HideMenuItems(){
 }
 void Snake::MostraOpzioni(){
 	OpzioniWid->AggiornaTopScores();
-	if (TestaSerpente->isVisible()) OpzioniWid->AttivaSelettoreSchema(false);
-	else OpzioniWid->AttivaSelettoreSchema(true);
+	OpzioniWid->AttivaSelettoreSchema(!TestaSerpente->isVisible());
 	OpzioniWid->show();
 	OpzioniWid->raise();
 	QPropertyAnimation* animOpzioni= new QPropertyAnimation(OpzioniWid,"pos",this);
@@ -259,15 +262,22 @@ void Snake::NuovaPartita(){
 	EliminaCorpo();
 	punti=0;
 	AggiornaPunti();
-	for (int j=12;j>7;j--){
-		CoordinateSerpente.append(CoordinateCorpo(j,10,CoordinateCorpo::Est));
-		if (j!=12 && j!=8){
+	for (int j=(NumeroCaselle/2)+2;j>=(NumeroCaselle/2)-2;j--){
+		CoordinateSerpente.append(CoordinateCorpo(j,NumeroCaselle/2+(((NumeroCaselle/2)-1)*(SchemaCorrente==SchemaLabirinto)),CoordinateCorpo::Est));
+		if (j!=(NumeroCaselle/2)+2 && j!=((NumeroCaselle/2)-2)){
 			CorpoSerpente.append(new QLabel(this));
 			CorpoSerpente.last()->setScaledContents(true);
 			CorpoSerpente.last()->show();
 		}
 	}
-	for (QList<QLabel*>::iterator i=Ostacoli.begin();i!=Ostacoli.end();i++) (*i)->show();
+	EliminaOstacoli();
+	for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end();i++){
+		Ostacoli.append(new QLabel(this));
+		Ostacoli.last()->setScaledContents(true);
+		Ostacoli.last()->setPixmap(ImmagineSasso);
+		Ostacoli.last()->setGeometry(i->GetX()*width()/NumeroCaselle,i->GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
+		Ostacoli.last()->show();
+	}
 	QTransform Rotazione;
 	for (int i=0;i<CoordinateSerpente.size();i++){
 		Rotazione.reset();
@@ -286,23 +296,36 @@ void Snake::NuovaPartita(){
 		}
 	}
 	TestaSerpente->show();
+	TestaSerpente->setEnabled(true);
 	CodaSerpente->show();
+	CodaSerpente->setEnabled(true);
 	ProssimaDirezione=Destra;
+	{
+		bool Conflitto;
+		do{
+			CoordinateMela.SetX(qrand()%NumeroCaselle);
+			CoordinateMela.SetY(qrand()%NumeroCaselle);
+			Conflitto=false;
+			for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && !Conflitto;i++)
+				if (CoordinateMela==(*i)) Conflitto=true;
+		}while((CoordinateMela.GetY()==10 && CoordinateMela.GetX()<13 && CoordinateMela.GetX()>7) || Conflitto );
+		Mela->setGeometry(CoordinateMela.GetX()*width()/NumeroCaselle,CoordinateMela.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
+		do{
+			CoordinateTopo.SetX(qrand()%NumeroCaselle);
+			CoordinateTopo.SetY(qrand()%NumeroCaselle);
+			Conflitto=false;
+				for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && !Conflitto;i++)
+					if (CoordinateTopo==(*i)) Conflitto=true;
+		}while((CoordinateTopo.GetY()==10 && CoordinateTopo.GetX()<13 && CoordinateTopo.GetX()>7) || CoordinateTopo==CoordinateMela || Conflitto);
+		Topo->setGeometry(CoordinateTopo.GetX()*width()/NumeroCaselle,CoordinateTopo.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 
-	do{
-		CoordinateMela.SetX(qrand()%NumeroCaselle);
-		CoordinateMela.SetY(qrand()%NumeroCaselle);
-	}while(CoordinateMela.GetY()==10 && CoordinateMela.GetX()<13 && CoordinateMela.GetX()>7);
-	Mela->setGeometry(CoordinateMela.GetX()*width()/NumeroCaselle,CoordinateMela.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
-	do{
-		CoordinateTopo.SetX(qrand()%NumeroCaselle);
-		CoordinateTopo.SetY(qrand()%NumeroCaselle);
-	}while((CoordinateTopo.GetY()==10 && CoordinateTopo.GetX()<13 && CoordinateTopo.GetX()>7) || CoordinateTopo==CoordinateMela);
-	Topo->setGeometry(CoordinateTopo.GetX()*width()/NumeroCaselle,CoordinateTopo.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
-
-	Mela->show();
-	Topo->show();
+		Mela->show();
+		Mela->setEnabled(true);
+		Topo->show();
+		Topo->setEnabled(true);
+	}
 	Punteggio->show();
+	Punteggio->setEnabled(true);
 	Giocando=true;
 	Partita();
 
@@ -313,6 +336,7 @@ void Snake::AggiornaPunti(){
 void Snake::CaricaPartita(){
 	CoordinateSerpente.clear();
 	EliminaCorpo();
+	EliminaOstacoli();
 	Salvataggio.open(QIODevice::ReadOnly);
 	QDataStream in(&Salvataggio);
 	in.setVersion(QDataStream::Qt_4_7);
@@ -323,6 +347,8 @@ void Snake::CaricaPartita(){
 		MostraMenu();
 		return;
 	}
+	in >>temp;
+	ImpostaSchema(temp);
 	in >> temp;
 	punti=temp;
 	in >> temp;
@@ -351,6 +377,13 @@ void Snake::CaricaPartita(){
 		}
 	}
 	Salvataggio.close();
+	for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end();i++){
+		Ostacoli.append(new QLabel(this));
+		Ostacoli.last()->setScaledContents(true);
+		Ostacoli.last()->setPixmap(ImmagineSasso);
+		Ostacoli.last()->setGeometry(i->GetX()*width()/NumeroCaselle,i->GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
+		Ostacoli.last()->show();
+	}
 	QTransform Rotazione;
 	for (int i=0;i<CoordinateSerpente.size();i++){
 		Rotazione.reset();
@@ -369,14 +402,19 @@ void Snake::CaricaPartita(){
 		}
 	}
 	TestaSerpente->show();
+	TestaSerpente->setEnabled(true);
 	CodaSerpente->show();
+	CodaSerpente->setEnabled(true);
 	ProssimaDirezione=CoordinateSerpente.first().GetDirezione();
 	Mela->setGeometry(CoordinateMela.GetX()*width()/NumeroCaselle,CoordinateMela.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 	Topo->setGeometry(CoordinateTopo.GetX()*width()/NumeroCaselle,CoordinateTopo.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 
 	Mela->show();
+	Mela->setEnabled(true);
 	Topo->show();
+	Topo->setEnabled(true);
 	Punteggio->show();
+	Punteggio->setEnabled(true);
 	AggiornaPunti();
 	Giocando=true;
 	QTimer::singleShot(1000,this,SLOT(Partita()));
@@ -404,7 +442,7 @@ void Snake::resizeEvent(QResizeEvent *event){
 	else OpzioniWid->resize(width()/2,height()/2);
 	OpzioniWid->move((width()-OpzioniWid->width())/2,(height()-OpzioniWid->height())/2);
 	for (int i=0;i<Ostacoli.size();i++)
-		Ostacoli.at(i)->setGeometry(CoordinateOstacoli.at(i).GetX()*width()/NumeroCaselle,CoordinateOstacoli.at(i).GetY()*width()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
+		Ostacoli.at(i)->setGeometry(CoordinateOstacoli.at(i).GetX()*width()/NumeroCaselle,CoordinateOstacoli.at(i).GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 	Conferma->setGeometry((width()-Conferma->width())/2,3*height()/4,LargezzaPulsante,AltezzaPulsante);
 }
 void Snake::EseguiAzione(){
@@ -434,6 +472,11 @@ void Snake::EliminaAusiliari(){
 	for (QList<QLabel*>::iterator i=AusiliariaSerpente.begin();i!=AusiliariaSerpente.end();i++) (*i)->deleteLater();
 	AusiliariaSerpente.clear();
 }
+void Snake::EliminaOstacoli(){
+	if(Ostacoli.isEmpty()) return;
+	for (QList<QLabel*>::iterator i=Ostacoli.begin();i!=Ostacoli.end();i++) (*i)->deleteLater();
+	Ostacoli.clear();
+}
 
 void Snake::Partita(){
 	if (!Giocando) return;
@@ -446,35 +489,85 @@ void Snake::Partita(){
 	connect(Animazioni,SIGNAL(finished()),this,SLOT(Partita()));
 
 	int DirezioneTopo;
-	if (!SmartMouse)
-		DirezioneTopo=qrand()%4;
+	if (!SmartMouse){
+		CoordinateCorpo Ipotesi;
+		bool Fattibile=true;
+		do{
+			Ipotesi=CoordinateTopo;
+			Fattibile=true;
+			DirezioneTopo=qrand()%4;
+			if (DirezioneTopo==Destra){
+				if(Ipotesi.GetX()==NumeroCaselle-1) Ipotesi.SetX(0);
+				else Ipotesi.IncrementaX(1);
+			}
+			else if (DirezioneTopo==Sinistra){
+				if(Ipotesi.GetX()==0) Ipotesi.SetX(NumeroCaselle-1);
+				else Ipotesi.IncrementaX(-1);
+			}
+			else if (DirezioneTopo==Su){
+				if(Ipotesi.GetY()==0) Ipotesi.SetY(NumeroCaselle-1);
+				else Ipotesi.IncrementaY(-1);
+			}
+			else if(DirezioneTopo==Giu){
+				if(Ipotesi.GetY()==NumeroCaselle-1) Ipotesi.SetY(0);
+				else Ipotesi.IncrementaY(1);
+			}
+			for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && Fattibile;i++){
+				if(Ipotesi==(*i)) Fattibile=false;
+			}
+		}while(!Fattibile);
+	}
 	else{
 		CoordinateCorpo Ipotesi(CoordinateTopo);
-		int MinDistanzaMela,MaxDistanzaSerpente;
+		int MinDistanzaMela=NumeroCaselle+NumeroCaselle+1,MaxDistanzaSerpente=0;
 		int MinIpotesi=Destra,MaxIpotesi=Destra;
+		bool Avaiable;
 		//Provo a Destra
 		if(Ipotesi.GetX()==NumeroCaselle-1) Ipotesi.SetX(0);
 		else Ipotesi.IncrementaX(1);
-		MinDistanzaMela=Ipotesi.Distanza(CoordinateMela);
-		MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first());
+		Avaiable=true;
+		for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && Avaiable ;i++){
+			if(Ipotesi==(*i)) Avaiable=false;
+		}
+		if (Avaiable){
+			if (Ipotesi.Distanza(CoordinateMela)<MinDistanzaMela) {MinDistanzaMela=Ipotesi.Distanza(CoordinateMela);  MinIpotesi=Destra;}
+			if (Ipotesi.Distanza(CoordinateSerpente.first())>MaxDistanzaSerpente) {MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first()); MaxIpotesi=Destra;}
+		}
 		//Provo a Sinistra
 		Ipotesi=CoordinateTopo;
 		if(Ipotesi.GetX()==0) Ipotesi.SetX(NumeroCaselle-1);
 		else Ipotesi.IncrementaX(-1);
-		if (Ipotesi.Distanza(CoordinateMela)<MinDistanzaMela) {MinDistanzaMela=Ipotesi.Distanza(CoordinateMela); MinIpotesi=Sinistra;}
-		if (Ipotesi.Distanza(CoordinateSerpente.first())>MaxDistanzaSerpente) {MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first()); MaxIpotesi=Sinistra;}
-		//Provo In Su
+		Avaiable=true;
+		for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && Avaiable ;i++){
+			if(Ipotesi==(*i)) Avaiable=false;
+		}
+		if (Avaiable){
+			if (Ipotesi.Distanza(CoordinateMela)<MinDistanzaMela) {MinDistanzaMela=Ipotesi.Distanza(CoordinateMela); MinIpotesi=Sinistra;}
+			if (Ipotesi.Distanza(CoordinateSerpente.first())>MaxDistanzaSerpente) {MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first()); MaxIpotesi=Sinistra;}
+		}//Provo In Su
 		Ipotesi=CoordinateTopo;
 		if(Ipotesi.GetY()==0) Ipotesi.SetY(NumeroCaselle-1);
 		else Ipotesi.IncrementaY(-1);
-		if (Ipotesi.Distanza(CoordinateMela)<MinDistanzaMela) {MinDistanzaMela=Ipotesi.Distanza(CoordinateMela); MinIpotesi=Su;}
-		if (Ipotesi.Distanza(CoordinateSerpente.first())>MaxDistanzaSerpente) {MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first()); MaxIpotesi=Su;}
+		Avaiable=true;
+		for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && Avaiable ;i++){
+			if(Ipotesi==(*i)) Avaiable=false;
+		}
+		if (Avaiable){
+			if (Ipotesi.Distanza(CoordinateMela)<MinDistanzaMela) {MinDistanzaMela=Ipotesi.Distanza(CoordinateMela); MinIpotesi=Su;}
+			if (Ipotesi.Distanza(CoordinateSerpente.first())>MaxDistanzaSerpente) {MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first()); MaxIpotesi=Su;}
+		}
 		//Provo In Giù
 		Ipotesi=CoordinateTopo;
 		if(Ipotesi.GetY()==NumeroCaselle-1) Ipotesi.SetY(0);
 		else Ipotesi.IncrementaY(1);
-		if (Ipotesi.Distanza(CoordinateMela)<MinDistanzaMela) {MinDistanzaMela=Ipotesi.Distanza(CoordinateMela); MinIpotesi=Giu;}
-		if (Ipotesi.Distanza(CoordinateSerpente.first())>MaxDistanzaSerpente) {MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first()); MaxIpotesi=Giu;}
+		Avaiable=true;
+		for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && Avaiable ;i++){
+			if(Ipotesi==(*i)) Avaiable=false;
+		}
+		if (Avaiable){
+			if (Ipotesi.Distanza(CoordinateMela)<MinDistanzaMela) {MinDistanzaMela=Ipotesi.Distanza(CoordinateMela); MinIpotesi=Giu;}
+			if (Ipotesi.Distanza(CoordinateSerpente.first())>MaxDistanzaSerpente) {MaxDistanzaSerpente=Ipotesi.Distanza(CoordinateSerpente.first()); MaxIpotesi=Giu;}
+		}
 		if (MaxDistanzaSerpente>MinDistanzaMela) DirezioneTopo=MinIpotesi;
 		else DirezioneTopo=MaxIpotesi;
 	}
@@ -501,7 +594,7 @@ void Snake::Partita(){
 			|| (CoordinateSerpente.first().GetY()==CoordinateMela.GetY() && CoordinateMela.GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)*/
 		) {punti+=difficolta; mangiato=true;} //l'ha mangiata il serpente
 		else {
-			punti-=5*difficolta+4*difficolta*SmartMouse;
+			punti-=5*difficolta-4*difficolta*SmartMouse;
 			if (!Score.isFinished()) Score.stop();
 			if (!GameOver.isFinished()) GameOver.stop();
 			if (!Fail.isFinished()) Fail.stop();
@@ -511,9 +604,12 @@ void Snake::Partita(){
 		bool buono;
 		do{
 			buono=true;
+			if ((NumeroCaselle*NumeroCaselle)-CoordinateSerpente.size()-1-CoordinateOstacoli.size()<2){Mela->hide(); break;}
 			CoordinateMela.SetX(qrand()%NumeroCaselle);
 			CoordinateMela.SetY(qrand()%NumeroCaselle);
 			if(CoordinateMela==CoordinateTopo) buono=false;
+			for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && buono;i++)
+				if (CoordinateMela==(*i)) buono=false;
 			for (QList<CoordinateCorpo>::iterator i=CoordinateSerpente.begin();i!=CoordinateSerpente.end() && buono;i++){
 				if(CoordinateMela==*i) buono=false;
 			}
@@ -553,10 +649,13 @@ void Snake::Partita(){
 		mangiato=true;
 		bool buono;
 		do{
+			if ((NumeroCaselle*NumeroCaselle)-CoordinateSerpente.size()-1-CoordinateOstacoli.size()<2){Topo->hide(); break;}
 			buono=true;
 			CoordinateTopo.SetX(qrand()%NumeroCaselle);
 			CoordinateTopo.SetY(qrand()%NumeroCaselle);
 			if(CoordinateMela==CoordinateTopo) buono=false;
+			for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && buono;i++)
+				if (CoordinateTopo==(*i)) buono=false;
 			for (QList<CoordinateCorpo>::iterator i=CoordinateSerpente.begin();i!=CoordinateSerpente.end() && buono;i++){
 				if(CoordinateTopo==*i) buono=false;
 			}
@@ -565,7 +664,12 @@ void Snake::Partita(){
 	}
 	}
 	bool vivo=true;
+	if ((NumeroCaselle*NumeroCaselle)-CoordinateSerpente.size()-1-CoordinateOstacoli.size()<2) vivo=false;
 	for (QList<CoordinateCorpo>::iterator i=CoordinateSerpente.begin()+1;i!=CoordinateSerpente.end() && vivo;i++){
+		if(CoordinateSerpente.first()==*i)
+			vivo=false;
+	}
+	for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && vivo;i++){
 		if(CoordinateSerpente.first()==*i)
 			vivo=false;
 	}
@@ -580,7 +684,6 @@ void Snake::Partita(){
 
 		Conferma->show();
 		Conferma->raise();
-		//disconnect(Animazioni,SIGNAL(finished()),this,SLOT(Partita()));
 		Giocando=false;
 		Punteggio->setText("<b>"+tr("Partita Terminata</b><br><b>Punteggio")+QString(": %1").arg(punti)+"</b>");
 		Punteggio->resize(Punteggio->sizeHint());
@@ -610,6 +713,7 @@ void Snake::Partita(){
 	QDataStream dati(&Salvataggio);
 	dati.setVersion(QDataStream::Qt_4_7);
 	dati << qint16(NumeroMagico)
+		<< qint16(SchemaCorrente)
 		<< qint16(punti)
 		<< qint16(CoordinateMela.GetX())
 		<< qint16(CoordinateMela.GetY())
@@ -914,6 +1018,7 @@ void Snake::NascondiPausa(){
 	Mela->setEnabled(true);
 	Topo->setEnabled(true);
 	for(QList<QLabel*>::iterator i=CorpoSerpente.begin();i!=CorpoSerpente.end();i++) (*i)->setEnabled(true);
+	for(QList<QLabel*>::iterator i=Ostacoli.begin();i!=Ostacoli.end();i++) (*i)->setEnabled(true);
 	TestaSerpente->setEnabled(true);
 	CodaSerpente->setEnabled(true);
 	Punteggio->setEnabled(true);
@@ -965,9 +1070,13 @@ void Snake::MostraPausa(){
 	Opzioni->raise();
 	Esci->show();
 	Esci->raise();
+	Esci->setText(tr("Abbandona"));
+	Esci->disconnect();
+	connect(Esci,SIGNAL(clicked()),this,SLOT(MostraMenu()));
 	Mela->setEnabled(false);
 	Topo->setEnabled(false);
 	for(QList<QLabel*>::iterator i=CorpoSerpente.begin();i!=CorpoSerpente.end();i++) (*i)->setEnabled(false);
+	for(QList<QLabel*>::iterator i=Ostacoli.begin();i!=Ostacoli.end();i++) (*i)->setEnabled(false);
 	TestaSerpente->setEnabled(false);
 	CodaSerpente->setEnabled(false);
 	Punteggio->setEnabled(false);
@@ -1040,12 +1149,9 @@ void Snake::ImpostaSchema(int a){
 	switch(a){
 		case SchemaLibero:
 			CoordinateOstacoli.clear();
-			if (!Ostacoli.isEmpty()) {for (QList<QLabel*>::iterator i=Ostacoli.begin();i!=Ostacoli.end();i++) (*i)->deleteLater();}
-			Ostacoli.clear();
+			SchemaCorrente=a;
 			break;
 		case SchemaGabbia:
-			if (!Ostacoli.isEmpty()) {for (QList<QLabel*>::iterator i=Ostacoli.begin();i!=Ostacoli.end();i++) (*i)->deleteLater();}
-			Ostacoli.clear();
 			CoordinateOstacoli.clear();
 			for (int i=0;i<NumeroCaselle;i++){
 				CoordinateOstacoli.append(CoordinateCorpo(i,0));
@@ -1055,13 +1161,51 @@ void Snake::ImpostaSchema(int a){
 					CoordinateOstacoli.append(CoordinateCorpo(NumeroCaselle-1,i));
 				}
 			}
-			for (int i=0;i<CoordinateOstacoli.size();i++){
-				Ostacoli.append(new QLabel(this));
-				Ostacoli.last()->setScaledContents(true);
-				Ostacoli.last()->setPixmap(ImmagineSasso);
-				Ostacoli.last()->hide();
-			}
+			SchemaCorrente=a;
 			break;
+		case SchemaAngoli:
+			CoordinateOstacoli.clear();
+			for(int i=0;i<NumeroCaselle/5;i++){
+				CoordinateOstacoli.append(CoordinateCorpo(i,0));
+				CoordinateOstacoli.append(CoordinateCorpo(NumeroCaselle-1-i,0));
+				CoordinateOstacoli.append(CoordinateCorpo(i,NumeroCaselle-1));
+				CoordinateOstacoli.append(CoordinateCorpo(NumeroCaselle-1-i,NumeroCaselle-1));
+				if(i!=0){
+					CoordinateOstacoli.append(CoordinateCorpo(0,i));
+					CoordinateOstacoli.append(CoordinateCorpo(NumeroCaselle-1,i));
+					CoordinateOstacoli.append(CoordinateCorpo(NumeroCaselle-1,NumeroCaselle-1-i));
+					CoordinateOstacoli.append(CoordinateCorpo(0,NumeroCaselle-1-i));
+				}
+			}
+			SchemaCorrente=a;
+			break;
+		case SchemaLabirinto:
+			CoordinateOstacoli.clear();
+			for (int i=1;i<=4;i++){
+				for (int j=0;j<NumeroCaselle-(NumeroCaselle/10);j++){
+					if (i%2!=0)
+						CoordinateOstacoli.append(CoordinateCorpo(((NumeroCaselle-4)/5*i)+i-1,j));
+					else
+						CoordinateOstacoli.append(CoordinateCorpo(((NumeroCaselle-4)/5*i)+i-1,NumeroCaselle-1-j));
+				}
+			}
+			SchemaCorrente=a;
+			break;
+		case SchemaCasuale:
+			CoordinateOstacoli.clear();
+			int Num=qrand()%(NumeroCaselle*NumeroCaselle/10);
+			CoordinateCorpo Prova;
+			bool Buono;
+			for (int i=0;i<Num;i++){
+				do{
+					Buono=true;
+					Prova.SetX(qrand()%NumeroCaselle);
+					Prova.SetY(qrand()%NumeroCaselle);
+					for (int j=(NumeroCaselle/2)+2;Buono && j>=(NumeroCaselle/2)-3;j--){
+						if (Prova==CoordinateCorpo(j,NumeroCaselle/2)) Buono=false;
+					}
+				}while(!Buono);
+				CoordinateOstacoli.append(Prova);
+			}
 	}
-	update();
 }

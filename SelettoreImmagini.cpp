@@ -64,6 +64,10 @@ SelettoreImmagini::SelettoreImmagini(QWidget* parent, int Orient)
 	Displayer->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
 	Displayer->setMinimumSize(50,50);
 
+	PulsanteAlto->setMaximumHeight(Displayer->height()/5);
+	PulsanteBasso->setMaximumHeight(Displayer->height()/5);
+	PulsanteDestra->setMaximumWidth(Displayer->width()/5);
+	PulsanteSinistra->setMaximumWidth(Displayer->width()/5);
 
 	VoidImage.fill(QColor(0,0,0,255));
 
@@ -216,6 +220,10 @@ void SelettoreImmagini::ImpostaPosDidascalia(int a){
 	update();
 }
 void SelettoreImmagini::resizeEvent(QResizeEvent *event){
+	PulsanteAlto->setMaximumHeight(Displayer->height()/5);
+	PulsanteBasso->setMaximumHeight(Displayer->height()/5);
+	PulsanteDestra->setMaximumWidth(Displayer->width()/5);
+	PulsanteSinistra->setMaximumWidth(Displayer->width()/5);
 	QTransform Rotazione;
 	Rotazione.reset();
 	if (Orientamento==Verticale) PulsanteAlto->setMask(Freccia.scaled(
