@@ -11,12 +11,14 @@ Snake::Snake(QWidget *parent)
 ,ImmagineCorpo(":/Snake/Body.png")
 ,ImmagineTopo(":/Snake/Mouse.png")
 ,ImmagineSasso(":/Snake/Stone.png")
+,Impostazioni(QSettings::IniFormat,QSettings::UserScope,"VRonin","SnaQe")
 ,Giocando(false)
 ,Salvataggio("Save.snq")
 ,SmartMouse(false)
 ,SchemaCorrente(0)
 {
 	qsrand(QTime::currentTime().msec());
+	setWindowIcon(QIcon(":/Snake/Head.png"));
 	installEventFilter(this);
 	
 	Effetti=new Phonon::MediaObject(this);
@@ -115,17 +117,24 @@ Snake::Snake(QWidget *parent)
 	LayoutSfondo->addWidget(Sfondo);
 
 	CorpoSerpente.clear();
-
+	RecuperaImpostazioni();
 	setStyleSheet(CSS::Principale);
 }
 void Snake::AggiornaOpzioni(){
 	difficolta=OpzioniWid->GetDifficolta();
+	Impostazioni.setValue("Difficolta",difficolta);
 	SmartMouse=OpzioniWid->GetSmartMouse();
+	Impostazioni.setValue("SmartMouse",SmartMouse);
 	if (OpzioniWid->GetSchemaScelto()!=SchemaCorrente) ImpostaSchema(OpzioniWid->GetSchemaScelto());
+	Impostazioni.setValue("Schema",OpzioniWid->GetSchemaScelto());
 	SuonoEffetti->setMuted(OpzioniWid->GetMuteEff());
+	Impostazioni.setValue("MutoEffetti",OpzioniWid->GetMuteEff());
 	SuonoMusica->setMuted(OpzioniWid->GetMuteMus());
+	Impostazioni.setValue("MutoMusica",OpzioniWid->GetMuteMus());
 	SuonoEffetti->setVolume(qreal(OpzioniWid->GetVolumeEff())/10.0);
+	Impostazioni.setValue("VolEffetti",OpzioniWid->GetVolumeEff());
 	SuonoMusica->setVolume(qreal(OpzioniWid->GetVolumeMus())/10.0);
+	Impostazioni.setValue("VolMusica",OpzioniWid->GetVolumeMus());
 }
 void Snake::MostraMenu(){
 	if(Musica->state()==Phonon::PlayingState){
@@ -460,8 +469,7 @@ void Snake::resizeEvent(QResizeEvent *event){
 	AusiliariaTopo->resize(width()/NumeroCaselle,height()/NumeroCaselle);
 	for (int i=0;i<CorpoSerpente.size();i++)
 		CorpoSerpente.at(i)->setGeometry(CoordinateSerpente.at(i+1).GetX()*width()/NumeroCaselle,CoordinateSerpente.at(i+1).GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
-	if (OpzioniWid->sizeHint().width()>width()/2 || OpzioniWid->sizeHint().height()>height()/2) OpzioniWid->resize(OpzioniWid->sizeHint());
-	else OpzioniWid->resize(width()/2,height()/2);
+	OpzioniWid->resize(OpzioniWid->sizeHint());
 	OpzioniWid->move((width()-OpzioniWid->width())/2,(height()-OpzioniWid->height())/2);
 	for (int i=0;i<Ostacoli.size();i++)
 		Ostacoli.at(i)->setGeometry(CoordinateOstacoli.at(i).GetX()*width()/NumeroCaselle,CoordinateOstacoli.at(i).GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
@@ -1230,4 +1238,33 @@ void Snake::ImpostaSchema(int a){
 }
 void Snake::ContinuaMusica(){
 	Musica->enqueue(Phonon::MediaSource(":/Suoni/Musica.mp3"));
+}
+void Snake::closeEvent(QCloseEvent *event){
+	Impostazioni.setValue("Dimensione",size());
+	Impostazioni.setValue("Posizione",pos());
+	Impostazioni.setValue("Massimizzato",isMaximized());
+	event->accept();
+}
+void Snake::RecuperaImpostazioni(){
+	bool Maxi=Impostazioni.value("Massimizzato",false).toBool();
+	if (Maxi) setWindowState(Qt::WindowMaximized);
+	else{
+		resize(Impostazioni.value("Dimensione",QSize(400,400)).toSize());
+		move(Impostazioni.value("Posizione",QPoint(200,200)).toPoint());
+	}
+	difficolta=Impostazioni.value("Difficolta",1).toInt();
+	OpzioniWid->ImpostaDifficolta(difficolta);
+	SmartMouse=Impostazioni.value("SmartMouse",false).toBool();
+	OpzioniWid->ImpostaSmartMouse(SmartMouse);
+	SchemaCorrente=Impostazioni.value("Schema",0).toInt();
+	OpzioniWid->ImpostaSchemaScelto(SchemaCorrente);
+	SuonoEffetti->setMuted(Impostazioni.value("MutoEffetti",false).toBool());
+	OpzioniWid->ImpostaMuteEff(SuonoEffetti->isMuted());
+	SuonoMusica->setMuted(Impostazioni.value("MutoMusica",false).toBool());
+	OpzioniWid->ImpostaMuteMus(SuonoMusica->isMuted());
+	SuonoEffetti->setVolume(qreal(Impostazioni.value("VolEffetti",10).toInt())/10.0);
+	OpzioniWid->ImpostaVolumeEff(qint32(SuonoEffetti->volume()*10.0));
+	SuonoMusica->setVolume(qreal(Impostazioni.value("VolMusica",10).toInt())/10.0);
+	OpzioniWid->ImpostaVolumeMus(qint32(SuonoMusica->volume()*10.0));
+
 }

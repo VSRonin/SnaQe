@@ -15,6 +15,15 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	OpzioniLabel->setObjectName("OpzioniLabel");
 	OpzioniLabel->setText(tr("Opzioni"));
 	OpzioniLabel->setScaledContents(true);
+	Sfondo=new QFrame(this);
+	Sfondo->setObjectName("Sfondo");
+	Sfondo->setGeometry(0,0,width(),height());
+	Sfondo->setStyleSheet("border: 2px solid #555;"
+		"border-radius: 11px;"
+		"background: qradialgradient(cx: 0.3, cy: -0.4,"
+		"fx: 0.3, fy: -0.4,"
+		"radius: 1.35, stop: 0 #fff, stop: 1 #888);");
+	Sfondo->show();
 
 	DifficoltaLabel=new QLabel(this);
 	DifficoltaLabel->setObjectName("DifficoltaLabel");
@@ -29,11 +38,11 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	DifficoltaSlide->setObjectName("DifficoltaSlide");
 	DifficoltaSlide->setValue(difficolta);
 	connect(DifficoltaSlide,SIGNAL(valueChanged(int)),this, SLOT(AggiornaTestoDifficolta(int)));
-	connect(DifficoltaSlide,SIGNAL(valueChanged(int)),this,SLOT(ImpostaDifficolta(int)));
+	connect(DifficoltaSlide,SIGNAL(valueChanged(int)),this,SLOT(SetDifficolta(int)));
 	TopoIntelligente=new QCheckBox(this);
 	TopoIntelligente->setObjectName("TopoIntelligente");
 	TopoIntelligente->setText(tr("Topo Intelligente"));
-	connect(TopoIntelligente,SIGNAL(clicked(bool)),this,SLOT(ImpostaIntelligenza(bool)));
+	connect(TopoIntelligente,SIGNAL(clicked(bool)),this,SLOT(SetSmartMouse(bool)));
 	QGridLayout* LayoutDifficolta=new QGridLayout;
 	LayoutDifficolta->addWidget(DifficoltaLabel,0,0,1,2);
 	LayoutDifficolta->addWidget(DifficoltaNum,1,0,1,1);
@@ -53,13 +62,13 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	VolumeMusSlide->setObjectName("VolumeMusSlide");
 	VolumeMusSlide->setValue(VolumeMus);
 	connect(VolumeMusSlide,SIGNAL(valueChanged(int)),this, SLOT(AggiornaTestoVolMus(int)));
-	connect(VolumeMusSlide,SIGNAL(valueChanged(int)),this,SLOT(ImpostaVolMus(int)));
+	connect(VolumeMusSlide,SIGNAL(valueChanged(int)),this,SLOT(SetVolMus(int)));
 	MutoMus=new QCheckBox(this);
 	MutoMus->setObjectName("MutoMus");
 	MutoMus->setText(tr("Disattiva Musica"));
 	connect(MutoMus,SIGNAL(clicked(bool)),VolumeMusSlide,SLOT(setDisabled(bool)));
 	connect(MutoMus,SIGNAL(clicked(bool)),VolumeMusNum,SLOT(setDisabled(bool)));
-	connect(MutoMus,SIGNAL(clicked(bool)),this,SLOT(ImpostaMuteMus(bool)));
+	connect(MutoMus,SIGNAL(clicked(bool)),this,SLOT(SetMuteMus(bool)));
 	QGridLayout* LayoutMusica=new QGridLayout;
 	LayoutMusica->addWidget(VolumeMusLabel,0,0,1,2);
 	LayoutMusica->addWidget(VolumeMusNum,1,0,1,1);
@@ -79,13 +88,13 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	VolumeEffSlide->setObjectName("VolumeMusSlide");
 	VolumeEffSlide->setValue(VolumeEff);
 	connect(VolumeEffSlide,SIGNAL(valueChanged(int)),this, SLOT(AggiornaTestoVolEff(int)));
-	connect(VolumeEffSlide,SIGNAL(valueChanged(int)),this,SLOT(ImpostaVolEff(int)));
+	connect(VolumeEffSlide,SIGNAL(valueChanged(int)),this,SLOT(SetVolEff(int)));
 	MutoEff=new QCheckBox(this);
 	MutoEff->setObjectName("MutoEff");
 	MutoEff->setText(tr("Disattiva Effetti"));
 	connect(MutoEff,SIGNAL(clicked(bool)),VolumeEffSlide,SLOT(setDisabled(bool)));
 	connect(MutoEff,SIGNAL(clicked(bool)),VolumeEffNum,SLOT(setDisabled(bool)));
-	connect(MutoEff,SIGNAL(clicked(bool)),this,SLOT(ImpostaMuteEff(bool)));
+	connect(MutoEff,SIGNAL(clicked(bool)),this,SLOT(SetMuteEff(bool)));
 	QGridLayout* LayoutEffetti=new QGridLayout;
 	LayoutEffetti->addWidget(VolumeEffLabel,0,0,1,2);
 	LayoutEffetti->addWidget(VolumeEffNum,1,0,1,1);
@@ -105,7 +114,7 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Angoli.png"),tr("Angoli"));
 	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Labirinto.png"),tr("Labirinto"));
 	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Gabbia.png"),tr("Casuale"));
-	connect(SelettoreSchema,SIGNAL(IndexChanged(int)),this,SLOT(ImpostaSchema(int)));
+	connect(SelettoreSchema,SIGNAL(IndexChanged(int)),this,SLOT(SetSchema(int)));
 	SchemaLabel=new QLabel(this);
 	SchemaLabel->setObjectName("SchemaLabel");
 	SchemaLabel->setText(tr("Schema"));
@@ -193,4 +202,9 @@ void WOpzioni::SalvaRecord(int punti){
 		Output << qint16(NumeroMagico) << *temp << temp[1] << temp[2];
 		Records.close();
 	}
+}
+void WOpzioni::resizeEvent(QResizeEvent *event){
+	Sfondo->move(0,0);
+	Sfondo->resize(width(),height());
+	QWidget::resizeEvent(event);
 }

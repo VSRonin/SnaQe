@@ -11,6 +11,8 @@ class Snake : public QWidget
 	Q_OBJECT
 private:
 	QFrame* Sfondo;
+	QSettings Impostazioni;
+	void RecuperaImpostazioni();
 	QPushButton* NuovoGioco;
 	QPushButton* CaricaGioco;
 	QPushButton* Opzioni;
@@ -61,6 +63,7 @@ private:
 protected:
 	void resizeEvent(QResizeEvent *event);
 	bool eventFilter(QObject *target, QEvent *event);
+	void closeEvent(QCloseEvent *event);
 private slots:
 	void ContinuaMusica();
 	void SetNuova(){WhatToDo=IniziaNuova;}

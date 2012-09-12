@@ -37,6 +37,7 @@ public:
 	int GetOrientamento() const {return Orientamento;}
 	void AggiungiImmagine(const QPixmap& fonte, const QString& Didas="");
 	int GetIndex() const {return IndiceCorrente;}
+	int GetNumeroImmagini() const {return Immagini.size();}
 protected:
 	void resizeEvent(QResizeEvent *event);
 public slots:
