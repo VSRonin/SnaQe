@@ -13,16 +13,19 @@ Snake::Snake(QWidget *parent)
 ,ImmagineSasso(":/Snake/Stone.png")
 ,Giocando(false)
 ,Salvataggio("Save.snq")
-,Score("Win.wav",this)
-,Fail("Lose.wav",this)
-,GameOver("GameOver.wav",this)
-,MuteMus(false)
 ,SmartMouse(false)
-,MuteEff(false)
 ,SchemaCorrente(0)
 {
 	qsrand(QTime::currentTime().msec());
 	installEventFilter(this);
+	
+	Effetti=new Phonon::MediaObject(this);
+	SuonoEffetti=new Phonon::AudioOutput(this);
+	Phonon::createPath(Effetti,SuonoEffetti);
+	Musica=new Phonon::MediaObject(this);
+	connect(Musica,SIGNAL(aboutToFinish()),this,SLOT(ContinuaMusica()));
+	SuonoMusica=new Phonon::AudioOutput(this);
+	Phonon::createPath(Musica,SuonoMusica);
 
 	Sfondo=new QFrame(this);
 	Sfondo->setObjectName("Sfondo");
@@ -118,11 +121,23 @@ Snake::Snake(QWidget *parent)
 void Snake::AggiornaOpzioni(){
 	difficolta=OpzioniWid->GetDifficolta();
 	SmartMouse=OpzioniWid->GetSmartMouse();
-	MuteEff=OpzioniWid->GetMuteEff();
-	MuteMus=OpzioniWid->GetMuteMus();
 	if (OpzioniWid->GetSchemaScelto()!=SchemaCorrente) ImpostaSchema(OpzioniWid->GetSchemaScelto());
+	SuonoEffetti->setMuted(OpzioniWid->GetMuteEff());
+	SuonoMusica->setMuted(OpzioniWid->GetMuteMus());
+	SuonoEffetti->setVolume(qreal(OpzioniWid->GetVolumeEff())/10.0);
+	SuonoMusica->setVolume(qreal(OpzioniWid->GetVolumeMus())/10.0);
 }
 void Snake::MostraMenu(){
+	if(Musica->state()==Phonon::PlayingState){
+		QPropertyAnimation* FadeOut=new QPropertyAnimation(SuonoMusica,"volume",this);
+		FadeOut->setEasingCurve(QEasingCurve::Linear);
+		FadeOut->setDuration(DurataAnimazioni);
+		FadeOut->setKeyValueAt(1.0,0.0);
+		FadeOut->setKeyValueAt(0.0,SuonoMusica->volume());
+		connect(FadeOut,SIGNAL(finished()),Musica,SLOT(stop()));
+		connect(FadeOut,SIGNAL(finished()),this,SLOT(AggiornaOpzioni()));
+		FadeOut->start(QAbstractAnimation::DeleteWhenStopped);
+	}
 	CaricaGioco->setEnabled(Salvataggio.size()>0);
 	int temp=(height()-(AltezzaPulsante*4)-(DistanzaPulsanti*3))/2;
 	NuovoGioco->show();
@@ -247,6 +262,7 @@ void Snake::NascondiOpzioni(){
 		Mela->setEnabled(true);
 		Topo->setEnabled(true);
 		for(QList<QLabel*>::iterator i=CorpoSerpente.begin();i!=CorpoSerpente.end();i++) (*i)->setEnabled(true);
+		for(QList<QLabel*>::iterator i=Ostacoli.begin();i!=Ostacoli.end();i++) (*i)->setEnabled(true);
 		TestaSerpente->setEnabled(true);
 		CodaSerpente->setEnabled(true);
 		Punteggio->setEnabled(true);
@@ -327,6 +343,9 @@ void Snake::NuovaPartita(){
 	Punteggio->show();
 	Punteggio->setEnabled(true);
 	Giocando=true;
+	if(Musica->state()==Phonon::PlayingState) Musica->stop();
+	Musica->setCurrentSource(Phonon::MediaSource(":/Suoni/Musica.mp3"));
+	Musica->play();
 	Partita();
 
 }
@@ -417,6 +436,9 @@ void Snake::CaricaPartita(){
 	Punteggio->setEnabled(true);
 	AggiornaPunti();
 	Giocando=true;
+	if(Musica->state()==Phonon::PlayingState) Musica->stop();
+	Musica->setCurrentSource(Phonon::MediaSource(":/Suoni/Musica.mp3"));
+	Musica->play();
 	QTimer::singleShot(1000,this,SLOT(Partita()));
 }
 void Snake::resizeEvent(QResizeEvent *event){
@@ -595,10 +617,9 @@ void Snake::Partita(){
 		) {punti+=difficolta; mangiato=true;} //l'ha mangiata il serpente
 		else {
 			punti-=5*difficolta-4*difficolta*SmartMouse;
-			if (!Score.isFinished()) Score.stop();
-			if (!GameOver.isFinished()) GameOver.stop();
-			if (!Fail.isFinished()) Fail.stop();
-			if (!MuteEff) Fail.play();
+			if(Effetti->state()==Phonon::PlayingState) Effetti->stop();
+			Effetti->setCurrentSource(Phonon::MediaSource(":/Suoni/Win.waw"));
+			Effetti->play();
 		}  //l'ha mangiata il topo
 		AggiornaPunti();
 		bool buono;
@@ -675,10 +696,9 @@ void Snake::Partita(){
 	}
 	Salvataggio.resize(0);
 	if (!vivo){
-		if (!Score.isFinished()) Score.stop();
-		if (!GameOver.isFinished()) GameOver.stop();
-		if (!Fail.isFinished()) Fail.stop();
-		if (!MuteEff) GameOver.play();
+		if(Effetti->state()==Phonon::PlayingState) Effetti->stop();
+		Effetti->setCurrentSource(Phonon::MediaSource(":/Suoni/Win.waw"));
+		Effetti->play();
 
 		OpzioniWid->SalvaRecord(punti);
 
@@ -807,10 +827,9 @@ void Snake::Partita(){
 	}
 
 	if (mangiato){
-		if (!Score.isFinished()) Score.stop();
-		if (!GameOver.isFinished()) GameOver.stop();
-		if (!Fail.isFinished()) Fail.stop();
-		if (!MuteEff) Score.play();
+		if(Effetti->state()==Phonon::PlayingState) Effetti->stop();
+		Effetti->setCurrentSource(Phonon::MediaSource(":/Suoni/Win.waw"));
+		Effetti->play();
 		CorpoSerpente.prepend(new QLabel(this));
 		CorpoSerpente.first()->setScaledContents(true);
 		CorpoSerpente.first()->show();
@@ -1208,4 +1227,7 @@ void Snake::ImpostaSchema(int a){
 				CoordinateOstacoli.append(Prova);
 			}
 	}
+}
+void Snake::ContinuaMusica(){
+	Musica->enqueue(Phonon::MediaSource(":/Suoni/Musica.mp3"));
 }

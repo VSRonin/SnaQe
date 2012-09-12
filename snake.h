@@ -2,6 +2,7 @@
 #define SNAKE_H
 
 #include <QtGui>
+#include <Phonon>
 #include "CoordinateCorpo.h"
 #include "Opzioni.h"
 
@@ -28,11 +29,10 @@ private:
 	QLabel* TestaSerpente;
 	QLabel* CodaSerpente;
 	WOpzioni* OpzioniWid;
-	QSound Score;
-	QSound Fail;
-	QSound GameOver;
-	bool MuteMus;
-	bool MuteEff;
+	Phonon::AudioOutput* SuonoMusica;
+	Phonon::AudioOutput* SuonoEffetti;
+	Phonon::MediaObject* Musica;
+	Phonon::MediaObject* Effetti;
 	bool SmartMouse;
 	QList<QLabel*> CorpoSerpente;
 	void EliminaCorpo();
@@ -62,6 +62,7 @@ protected:
 	void resizeEvent(QResizeEvent *event);
 	bool eventFilter(QObject *target, QEvent *event);
 private slots:
+	void ContinuaMusica();
 	void SetNuova(){WhatToDo=IniziaNuova;}
 	void SetCarica(){WhatToDo=IniziaCaricata;}
 	void SetOpzioni(){WhatToDo=Settings;}

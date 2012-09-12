@@ -7,8 +7,8 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 ,MuteEff(false)
 ,MuteMus(false)
 ,Records("TopScores.snq")
-,VolumeMus(5)
-,VolumeEff(5)
+,VolumeMus(10)
+,VolumeEff(10)
 ,SchemaScelto(0)
 {
 	OpzioniLabel=new QLabel(this);
