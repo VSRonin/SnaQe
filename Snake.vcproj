@@ -323,6 +323,66 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Resources\Schemi\Casuale.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\Checked.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\Explosion.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\Resources\Schemi\Gabbia.png"
 				>
 				<FileConfiguration
@@ -432,7 +492,7 @@
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
 						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(InputPath);.\Resources\Mela.png;.\Resources\snake_body.png;.\Resources\snake_head.png;.\Resources\snake_tail.png;.\Resources\animals-mouse.png;.\Resources\Stone.png;.\Resources\Schemi\Libero.png;.\Resources\Schemi\Gabbia.png;.\Resources\Schemi\Angoli.png;.\Resources\Schemi\Labirinto.png;.\Resources\Suoni\Musica.mp3;.\Resources\Suoni\tada.wav"
+						AdditionalDependencies="$(InputPath);.\Resources\Mela.png;.\Resources\snake_body.png;.\Resources\snake_head.png;.\Resources\snake_tail.png;.\Resources\animals-mouse.png;.\Resources\Stone.png;.\Resources\Explosion.png;.\Resources\Schemi\Libero.png;.\Resources\Schemi\Gabbia.png;.\Resources\Schemi\Angoli.png;.\Resources\Schemi\Labirinto.png;.\Resources\Schemi\Casuale.png;.\Resources\Suoni\Musica.mp3;.\Resources\Suoni\tada.wav"
 						Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
@@ -443,7 +503,7 @@
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
 						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(InputPath);.\Resources\Mela.png;.\Resources\snake_body.png;.\Resources\snake_head.png;.\Resources\snake_tail.png;.\Resources\animals-mouse.png;.\Resources\Stone.png;.\Resources\Schemi\Libero.png;.\Resources\Schemi\Gabbia.png;.\Resources\Schemi\Angoli.png;.\Resources\Schemi\Labirinto.png;.\Resources\Suoni\Musica.mp3;.\Resources\Suoni\tada.wav"
+						AdditionalDependencies="$(InputPath);.\Resources\Mela.png;.\Resources\snake_body.png;.\Resources\snake_head.png;.\Resources\snake_tail.png;.\Resources\animals-mouse.png;.\Resources\Stone.png;.\Resources\Explosion.png;.\Resources\Schemi\Libero.png;.\Resources\Schemi\Gabbia.png;.\Resources\Schemi\Angoli.png;.\Resources\Schemi\Labirinto.png;.\Resources\Schemi\Casuale.png;.\Resources\Suoni\Musica.mp3;.\Resources\Suoni\tada.wav"
 						Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
@@ -530,6 +590,26 @@
 			</File>
 			<File
 				RelativePath=".\Resources\Suoni\tada.wav"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\Vuoto.png"
 				>
 				<FileConfiguration
 					Name="Release|Win32"

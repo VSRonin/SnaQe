@@ -249,8 +249,9 @@ void SelettoreImmagini::resizeEvent(QResizeEvent *event){
 			+(DidascaliaSotto->height()*(VisDidascalia==Sotto))
 			,PulsanteSinistra->width()
 		).transformed(Rotazione).mask());
-	IconaCorrente->setGeometry(0,0,Displayer->width(),Displayer->height());
-	IconaSuccessiva->setGeometry(0,0,Displayer->width(),Displayer->height());
+	IconaCorrente->resize(Displayer->width(),Displayer->height());
+	IconaCorrente->move(0,0);
+	IconaSuccessiva->resize(Displayer->width(),Displayer->height());
 	QWidget::resizeEvent(event);
 }
 void SelettoreImmagini::AggiungiImmagine(const QPixmap& fonte, const QString& Didas){
@@ -269,12 +270,17 @@ void SelettoreImmagini::SetIndex(int a){
 	if (a==IndiceCorrente){
 		emit IndexChanged(IndiceCorrente);
 		SettingIndex=-1;
+		AggiornaAttivazionePulsanti();
 		return;
 	}
 	if (a<0 || a>Immagini.size()-1) return;
 	if (!isVisible()){
 		IconaCorrente->setPixmap(Immagini.at(a));
+		DidascaliaSotto->setText(Didascalie.at(a));
+		DidascaliaSopra->setText(Didascalie.at(a));
 		IndiceCorrente=a;
+		emit IndexChanged(IndiceCorrente);
+		AggiornaAttivazionePulsanti();
 		return;
 	}
 	SettingIndex=a;

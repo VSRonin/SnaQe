@@ -60,6 +60,11 @@ Snake::Snake(QWidget *parent)
 	AusiliariaTopo->setObjectName("AusiliariaTopo");
 	AusiliariaTopo->setScaledContents(true);
 	AusiliariaTopo->hide();
+	Explosion=new QLabel(this);
+	Explosion->setObjectName("Explosion");
+	Explosion->setScaledContents(true);
+	Explosion->setPixmap(QPixmap(":/Snake/Explosion.png"));
+	Explosion->hide();
 
 	NuovoGioco=new QPushButton(this);
 	NuovoGioco->setObjectName("NuovoGioco");
@@ -75,7 +80,7 @@ Snake::Snake(QWidget *parent)
 	connect(CaricaGioco,SIGNAL(clicked()),this,SLOT(NascondiMenu()));
 	connect(CaricaGioco,SIGNAL(clicked()),this,SLOT(SetCarica()));
 	Opzioni=new QPushButton(this);
-	Opzioni->setObjectName("Opzioni");
+	Opzioni->setObjectName("OpzioniButton");
 	Opzioni->setMinimumSize(LargezzaPulsante,AltezzaPulsante);
 	Opzioni->setText(tr("Opzioni"));
 	connect(Opzioni,SIGNAL(clicked()),this,SLOT(NascondiMenu()));
@@ -137,6 +142,7 @@ void Snake::AggiornaOpzioni(){
 	Impostazioni.setValue("VolMusica",OpzioniWid->GetVolumeMus());
 }
 void Snake::MostraMenu(){
+	Explosion->hide();
 	if(Musica->state()==Phonon::PlayingState){
 		QPropertyAnimation* FadeOut=new QPropertyAnimation(SuonoMusica,"volume",this);
 		FadeOut->setEasingCurve(QEasingCurve::Linear);
@@ -277,13 +283,14 @@ void Snake::NascondiOpzioni(){
 		Punteggio->setEnabled(true);
 		for(QList<QLabel*>::iterator i=AusiliariaSerpente.begin();i!=AusiliariaSerpente.end();i++) (*i)->setEnabled(true);
 		AusiliariaTopo->setEnabled(true);
-		connect(animOpzioni,SIGNAL(finished()),this,SLOT(Partita()));
+		connect(animOpzioni,SIGNAL(finished()),this,SLOT(DelayPartita()));
 	}
 	animOpzioni->start(QAbstractAnimation::DeleteWhenStopped);
 }
 void Snake::NuovaPartita(){
 	Salvataggio.resize(0);
 	CoordinateSerpente.clear();
+	Explosion->hide();
 	EliminaCorpo();
 	punti=0;
 	AggiornaPunti();
@@ -355,7 +362,7 @@ void Snake::NuovaPartita(){
 	if(Musica->state()==Phonon::PlayingState) Musica->stop();
 	Musica->setCurrentSource(Phonon::MediaSource(":/Suoni/Musica.mp3"));
 	Musica->play();
-	Partita();
+	DelayPartita();
 
 }
 void Snake::AggiornaPunti(){
@@ -364,6 +371,7 @@ void Snake::AggiornaPunti(){
 void Snake::CaricaPartita(){
 	CoordinateSerpente.clear();
 	EliminaCorpo();
+	Explosion->hide();
 	EliminaOstacoli();
 	Salvataggio.open(QIODevice::ReadOnly);
 	QDataStream in(&Salvataggio);
@@ -448,7 +456,7 @@ void Snake::CaricaPartita(){
 	if(Musica->state()==Phonon::PlayingState) Musica->stop();
 	Musica->setCurrentSource(Phonon::MediaSource(":/Suoni/Musica.mp3"));
 	Musica->play();
-	QTimer::singleShot(1000,this,SLOT(Partita()));
+	DelayPartita();
 }
 void Snake::resizeEvent(QResizeEvent *event){
 	
@@ -461,6 +469,7 @@ void Snake::resizeEvent(QResizeEvent *event){
 	CaricaGioco->setGeometry((width()-LargezzaPulsante)/2,temp+AltezzaPulsante+DistanzaPulsanti,LargezzaPulsante,AltezzaPulsante);
 	Opzioni->setGeometry((width()-LargezzaPulsante)/2,temp+2*AltezzaPulsante+2*DistanzaPulsanti,LargezzaPulsante,AltezzaPulsante);
 	Esci->setGeometry((width()-LargezzaPulsante)/2,temp+3*AltezzaPulsante+3*DistanzaPulsanti,LargezzaPulsante,AltezzaPulsante);
+	Explosion->setGeometry(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 	Mela->setGeometry(CoordinateMela.GetX()*width()/NumeroCaselle,CoordinateMela.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 	Topo->setGeometry(CoordinateTopo.GetX()*width()/NumeroCaselle,CoordinateTopo.GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
 	TestaSerpente->setGeometry(CoordinateSerpente.first().GetX()*width()/NumeroCaselle,CoordinateSerpente.first().GetY()*height()/NumeroCaselle,width()/NumeroCaselle,height()/NumeroCaselle);
@@ -695,12 +704,26 @@ void Snake::Partita(){
 	bool vivo=true;
 	if ((NumeroCaselle*NumeroCaselle)-CoordinateSerpente.size()-1-CoordinateOstacoli.size()<2) vivo=false;
 	for (QList<CoordinateCorpo>::iterator i=CoordinateSerpente.begin()+1;i!=CoordinateSerpente.end() && vivo;i++){
-		if(CoordinateSerpente.first()==*i)
+		if(CoordinateSerpente.first()==*i
+			|| (CoordinateSerpente.first().GetY()==i->GetY() && i->GetX()==0 && CoordinateSerpente.first().GetX()==NumeroCaselle)
+			|| (CoordinateSerpente.first().GetY()==i->GetY() && i->GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)
+			|| (CoordinateSerpente.first().GetX()==i->GetX() && i->GetY()==0 && CoordinateSerpente.first().GetY()==NumeroCaselle)
+			|| (CoordinateSerpente.first().GetX()==i->GetX() && i->GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
+		){
 			vivo=false;
+			Explosion->move(i->GetX()*width()/NumeroCaselle,i->GetY()*height()/NumeroCaselle);
+		}
 	}
 	for (QList<CoordinateCorpo>::iterator i=CoordinateOstacoli.begin();i!=CoordinateOstacoli.end() && vivo;i++){
-		if(CoordinateSerpente.first()==*i)
-			vivo=false;
+		if(CoordinateSerpente.first()==*i
+			|| (CoordinateSerpente.first().GetY()==i->GetY() && i->GetX()==0 && CoordinateSerpente.first().GetX()==NumeroCaselle)
+			|| (CoordinateSerpente.first().GetY()==i->GetY() && i->GetX()==NumeroCaselle-1 && CoordinateSerpente.first().GetX()<0)
+			|| (CoordinateSerpente.first().GetX()==i->GetX() && i->GetY()==0 && CoordinateSerpente.first().GetY()==NumeroCaselle)
+			|| (CoordinateSerpente.first().GetX()==i->GetX() && i->GetY()==NumeroCaselle-1 && CoordinateSerpente.first().GetY()<0)
+		){
+				vivo=false;
+				Explosion->move(i->GetX()*width()/NumeroCaselle,i->GetY()*height()/NumeroCaselle);
+		}
 	}
 	Salvataggio.resize(0);
 	if (!vivo){
@@ -709,6 +732,16 @@ void Snake::Partita(){
 		Effetti->play();
 
 		OpzioniWid->SalvaRecord(punti);
+
+		Explosion->show();
+		Explosion->raise();
+		Punteggio->raise();
+		QPropertyAnimation* AnimExplode=new QPropertyAnimation(Explosion,"size",this);
+		AnimExplode->setEasingCurve(QEasingCurve::InQuad);
+		AnimExplode->setDuration(DurataAnimazioni);
+		AnimExplode->setKeyValueAt(0.0,QSize(0,0));
+		AnimExplode->setKeyValueAt(1.0,QSize(width()/NumeroCaselle,height()/NumeroCaselle));
+		Animazioni->addAnimation(AnimExplode);
 
 		Conferma->show();
 		Conferma->raise();
@@ -1080,7 +1113,7 @@ void Snake::NascondiPausa(){
 	Animazioni->addAnimation(animOpzioni);
 	Animazioni->addAnimation(animEsci);
 	connect(Animazioni,SIGNAL(finished()),this,SLOT(HideMenuItems()));
-	connect(Animazioni,SIGNAL(finished()),this,SLOT(Partita()));
+	connect(Animazioni,SIGNAL(finished()),this,SLOT(DelayPartita()));
 
 
 	Animazioni->start(QAbstractAnimation::DeleteWhenStopped);
@@ -1257,6 +1290,7 @@ void Snake::RecuperaImpostazioni(){
 	SmartMouse=Impostazioni.value("SmartMouse",false).toBool();
 	OpzioniWid->ImpostaSmartMouse(SmartMouse);
 	SchemaCorrente=Impostazioni.value("Schema",0).toInt();
+	ImpostaSchema(SchemaCorrente);
 	OpzioniWid->ImpostaSchemaScelto(SchemaCorrente);
 	SuonoEffetti->setMuted(Impostazioni.value("MutoEffetti",false).toBool());
 	OpzioniWid->ImpostaMuteEff(SuonoEffetti->isMuted());

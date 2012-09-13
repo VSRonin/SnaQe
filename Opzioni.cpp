@@ -18,11 +18,6 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	Sfondo=new QFrame(this);
 	Sfondo->setObjectName("Sfondo");
 	Sfondo->setGeometry(0,0,width(),height());
-	Sfondo->setStyleSheet("border: 2px solid #555;"
-		"border-radius: 11px;"
-		"background: qradialgradient(cx: 0.3, cy: -0.4,"
-		"fx: 0.3, fy: -0.4,"
-		"radius: 1.35, stop: 0 #fff, stop: 1 #888);");
 	Sfondo->show();
 
 	DifficoltaLabel=new QLabel(this);
@@ -113,7 +108,7 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Gabbia.png"),tr("Gabbia"));
 	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Angoli.png"),tr("Angoli"));
 	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Labirinto.png"),tr("Labirinto"));
-	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Gabbia.png"),tr("Casuale"));
+	SelettoreSchema->AggiungiImmagine(QPixmap(":/Schemi/Casuale.png"),tr("Casuale"));
 	connect(SelettoreSchema,SIGNAL(IndexChanged(int)),this,SLOT(SetSchema(int)));
 	SchemaLabel=new QLabel(this);
 	SchemaLabel->setObjectName("SchemaLabel");
@@ -148,7 +143,7 @@ WOpzioni::WOpzioni(QWidget* parent/* =0 */)
 	LayoutOpzioni->addLayout(LayoutEffetti,2,1,1,1);
 	LayoutOpzioni->addWidget(TopScores,3,1,1,1);
 	LayoutOpzioni->addLayout(LayoutSchemi,2,0,2,1);
-	LayoutOpzioni->addLayout(LayoutPulsanti,4,0,1,2);	
+	LayoutOpzioni->addLayout(LayoutPulsanti,4,0,1,2);
 }
 void WOpzioni::AggiornaTopScores(){
 	quint16 punteggi[3];

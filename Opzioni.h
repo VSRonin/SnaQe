@@ -76,7 +76,10 @@ public:
 	bool GetMuteEff() const {return MuteEff;}
 	void ImpostaMuteEff(bool a){MuteEff=a; MutoEff->setChecked(a);}
 	int GetSchemaScelto() const {return SchemaScelto;}
-	void ImpostaSchemaScelto(int a){if (a<0 || a>=SelettoreSchema->GetNumeroImmagini()) return; SchemaScelto=a; SelettoreSchema->SetIndex(a);}
+	void ImpostaSchemaScelto(int a){
+		if (a<0 || a>=SelettoreSchema->GetNumeroImmagini()) return;
+		SchemaScelto=a;
+		SelettoreSchema->SetIndex(a);}
 	bool GetSmartMouse() const {return SmartMouse;}
 	void ImpostaSmartMouse(bool a){SmartMouse=a; TopoIntelligente->setChecked(a);}
 	void SalvaRecord(int punti);

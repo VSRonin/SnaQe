@@ -21,6 +21,7 @@ private:
 	QLabel* Punteggio;
 	QLabel* Mela;
 	QLabel* Topo;
+	QLabel* Explosion;
 	QList<QLabel*> AusiliariaSerpente;
 	QLabel* AusiliariaTopo;
 	QPixmap ImmagineTesta;
@@ -65,6 +66,7 @@ protected:
 	bool eventFilter(QObject *target, QEvent *event);
 	void closeEvent(QCloseEvent *event);
 private slots:
+	void DelayPartita(){QTimer::singleShot(1000,this,SLOT(Partita()));}
 	void ContinuaMusica();
 	void SetNuova(){WhatToDo=IniziaNuova;}
 	void SetCarica(){WhatToDo=IniziaCaricata;}
