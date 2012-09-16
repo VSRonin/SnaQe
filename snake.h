@@ -86,6 +86,8 @@ private slots:
 	void Partita();
 	void ImpostaDifficolta(int a){difficolta=a;}
 	void ImpostaSchema(int a);
+	void MenuFadeIn();
+	void GameFadeIn();
 
 public:
 	Snake(QWidget *parent = 0);

@@ -16,7 +16,10 @@
         <file alias="Casuale.png">Resources/Schemi/Casuale.png</file>
     </qresource>
     <qresource prefix="/Suoni">
-        <file alias="Musica.mp3">Resources/Suoni/Musica.mp3</file>
-        <file alias="Win.waw">Resources/Suoni/tada.wav</file>
+        <file alias="GameOver.wav">Resources/GameOver.wav</file>
+        <file alias="Lose.wav">Resources/Lose.wav</file>
+        <file alias="MenuMusic.mp3">Resources/MenuMusic.mp3</file>
+        <file alias="Win.wav">Resources/Win.wav</file>
+        <file alias="PlayMusic.mp3">Resources/PlayMusic.mp3</file>
     </qresource>
 </RCC>
