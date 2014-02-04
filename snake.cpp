@@ -424,7 +424,7 @@ void Snake::CaricaPartita(){
 	in >> temp;
 	CoordinateMela.SetY(temp);
 	in >> temp;
-	CoordinateTopo.SetY(temp);
+	CoordinateTopo.SetX(temp);
 	in >> temp;
 	CoordinateTopo.SetY(temp);
 	in >> temp;
@@ -563,10 +563,12 @@ void Snake::Partita(){
 	if (!SmartMouse){
 		CoordinateCorpo Ipotesi;
 		bool Fattibile=true;
+		bool CheckedOnce=false;
 		do{
 			Ipotesi=CoordinateTopo;
 			Fattibile=true;
-			DirezioneTopo=qrand()%4;
+			if(qrand()%4==0) DirezioneTopo=CoordinateTopo.GetDirezione();
+			else DirezioneTopo=qrand()%4;
 			if (DirezioneTopo==Destra){
 				if(Ipotesi.GetX()==NumeroCaselle-1) Ipotesi.SetX(0);
 				else Ipotesi.IncrementaX(1);
